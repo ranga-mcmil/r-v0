@@ -1,4 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// Updated warehouse stats using generic component
+// app/(main)/warehouses/components/warehouses-stats.tsx  
+import { StatsCards, StatCard } from "@/components/stats/stats-cards"
 import { FileText, Calendar } from "lucide-react"
 
 interface WarehousesStatsProps {
@@ -16,52 +18,34 @@ export function WarehousesStats({
   totalUsers,
   filteredCount,
 }: WarehousesStatsProps) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Warehouses</CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{filteredCount ?? totalWarehouses}</div>
-          <p className="text-xs text-muted-foreground">
-            {filteredCount !== undefined && filteredCount !== totalWarehouses
-              ? `Filtered from ${totalWarehouses} total`
-              : "All warehouses"}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Warehouses</CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{activeWarehouses}</div>
-          <p className="text-xs text-muted-foreground">Ready for operations</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Inactive Warehouses</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{inactiveWarehouses}</div>
-          <p className="text-xs text-muted-foreground">Not currently in use</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Assigned Users</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalUsers}</div>
-          <p className="text-xs text-muted-foreground">Total users assigned</p>
-        </CardContent>
-      </Card>
-    </div>
-  )
+  const stats: StatCard[] = [
+    {
+      title: "Total Warehouses",
+      value: filteredCount ?? totalWarehouses,
+      description: filteredCount !== undefined && filteredCount !== totalWarehouses
+        ? `Filtered from ${totalWarehouses} total`
+        : "All warehouses",
+      icon: FileText,
+    },
+    {
+      title: "Active Warehouses", 
+      value: activeWarehouses,
+      description: "Ready for operations",
+      icon: FileText,
+    },
+    {
+      title: "Inactive Warehouses",
+      value: inactiveWarehouses, 
+      description: "Not currently in use",
+      icon: Calendar,
+    },
+    {
+      title: "Assigned Users",
+      value: totalUsers,
+      description: "Total users assigned", 
+      icon: Calendar,
+    },
+  ]
+
+  return <StatsCards stats={stats} />
 }

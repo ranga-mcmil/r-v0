@@ -1,7 +1,10 @@
+
+// app/(main)/warehouses/delete/[id]/page.tsx
 import { warehouses, users } from "@/lib/dummy-data"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { deleteWarehouse } from "../../actions"
 
 interface DeleteWarehousePageProps {
   params: {
@@ -23,12 +26,17 @@ export default function DeleteWarehousePage({ params }: DeleteWarehousePageProps
   const assignedUsers = users.filter((user) => user.warehouseId === id)
   const hasAssignedUsers = assignedUsers.length > 0
 
-  async function deleteWarehouse() {
+  async function handleDeleteWarehouse() {
     "use server"
 
-    // In a real app, this would delete from a database
-    // For now, we'll just redirect back to the warehouses page
-    redirect("/warehouses")
+    const result = await deleteWarehouse(id)
+    
+    if (result.success) {
+      redirect("/warehouses")
+    } else {
+      // In a real app, you'd handle the error appropriately
+      redirect("/warehouses")
+    }
   }
 
   return (
@@ -62,7 +70,7 @@ export default function DeleteWarehousePage({ params }: DeleteWarehousePageProps
               <Link href="/warehouses">Cancel</Link>
             </Button>
 
-            <form action={deleteWarehouse}>
+            <form action={handleDeleteWarehouse}>
               <Button type="submit" variant="destructive" disabled={hasAssignedUsers}>
                 Delete Warehouse
               </Button>

@@ -18,7 +18,7 @@ export default function LoginPage() {
             />
           </Link>
         </div>
-        <LoginForm />
+          <LoginForm />
       </div>
     </div>
   )

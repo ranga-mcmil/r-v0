@@ -10,44 +10,66 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useForm } from "react-hook-form"
+import { SignInPayload } from "@/lib/http-service/accounts/types"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { signIn } from 'next-auth/react';
+import { SignInSchema } from "@/lib/http-service/accounts/schema"
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const router = useRouter()
   const { toast } = useToast()
+  const router = useRouter()
+  const defaultValues = {
+    email: '',
+    password: ''
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  };
+  
+  const form = useForm<SignInPayload>({
+    resolver: zodResolver(SignInSchema),
+    defaultValues
+  });
 
+  const onSubmit = async (data: SignInPayload) => {
+    setIsLoading(true);
     try {
-      // Simulate a delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // Always succeed
+      await handleSignIn(data);
+    } catch {
+      console.error("Error during sign in");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleSignIn = async (data: SignInPayload) => {
+    const signInResponse = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+  
+    if (signInResponse?.ok) {
       toast({
         title: "Login successful",
         description: "Welcome to RoofStar Industries POS",
       })
-
-      router.push("/")
-    } catch (error) {
+      router.push(signInResponse?.url ?? '/');
+      // router.push('/');
+      router.refresh()
+    } else {
       toast({
         title: "Login failed",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
-  }
+  };
 
   return (
     <Card>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
@@ -59,12 +81,15 @@ export function LoginForm() {
               id="email"
               type="email"
               placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              {...form.register("email")}
             />
+            {form.formState.errors.email && (
+              <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+            )}
           </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
@@ -76,10 +101,9 @@ export function LoginForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                {...form.register("password")}
               />
               <Button
                 type="button"
@@ -97,6 +121,9 @@ export function LoginForm() {
                 <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
               </Button>
             </div>
+            {form.formState.errors.password && (
+              <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+            )}
           </div>
         </CardContent>
         <CardFooter>

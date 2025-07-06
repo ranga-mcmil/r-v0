@@ -1,12 +1,14 @@
-"use client"
 
+// app/(main)/warehouses/[id]/page.tsx
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Edit, Printer } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { warehouses, users } from "@/lib/dummy-data"
+import { getWarehouseById, getAssignedUsers } from "../actions"
+import { WarehouseActions } from "../components/warehouse-actions"
+import { StatusChangeButton } from "../components/status-change-button"
 
 interface WarehouseDetailsPageProps {
   params: {
@@ -14,18 +16,18 @@ interface WarehouseDetailsPageProps {
   }
 }
 
-export default function WarehouseDetailsPage({ params }: WarehouseDetailsPageProps) {
+export default async function WarehouseDetailsPage({ params }: WarehouseDetailsPageProps) {
   const warehouseId = params.id
 
-  // Fetch warehouse data directly from dummy data
-  const warehouse = warehouses.find((w) => w.id === warehouseId)
+  // Fetch data server-side
+  const [warehouse, assignedUsers] = await Promise.all([
+    getWarehouseById(warehouseId),
+    getAssignedUsers(warehouseId)
+  ])
 
   if (!warehouse) {
     notFound()
   }
-
-  // Get assigned users directly from dummy data
-  const assignedUsers = users.filter((user) => user.warehouseId === warehouseId)
 
   // Get status badge
   const getStatusBadge = (status: string) => {
@@ -52,7 +54,6 @@ export default function WarehouseDetailsPage({ params }: WarehouseDetailsPagePro
             </Button>
             <div>
               <h1 className="text-2xl font-bold">{warehouse.name}</h1>
-              {/* Fixed: Replaced p with div to avoid nesting issues */}
               <div className="flex items-center gap-2 text-muted-foreground">
                 <span>{warehouse.location}</span>
                 <span>•</span>
@@ -61,38 +62,12 @@ export default function WarehouseDetailsPage({ params }: WarehouseDetailsPagePro
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  window.print()
-                }}
-              >
-                <Printer className="mr-2 h-4 w-4" /> Print
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault()
-                  alert("Export functionality would go here")
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" /> Export PDF
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={`/warehouses/edit/${warehouse.id}`}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href={`/warehouses/status/${warehouse.id}`}>
-                {warehouse.status === "active" ? "Deactivate" : "Activate"}
-              </Link>
-            </Button>
+            <WarehouseActions warehouseId={warehouse.id} warehouseName={warehouse.name} />
+            <StatusChangeButton
+              warehouseId={warehouse.id}
+              currentStatus={warehouse.status as "active" | "inactive"}
+              warehouseName={warehouse.name}
+            />
           </div>
         </div>
 

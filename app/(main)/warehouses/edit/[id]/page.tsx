@@ -1,9 +1,10 @@
+// app/(main)/warehouses/edit/[id]/page.tsx
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { warehouses } from "@/lib/dummy-data"
+import { getWarehouseById } from "../../actions"
 import { WarehouseFormClient } from "../../components/warehouse-form-client"
 
 interface EditWarehousePageProps {
@@ -12,11 +13,11 @@ interface EditWarehousePageProps {
   }
 }
 
-export default function EditWarehousePage({ params }: EditWarehousePageProps) {
+export default async function EditWarehousePage({ params }: EditWarehousePageProps) {
   const warehouseId = params.id
 
-  // Fetch warehouse data directly from dummy data
-  const warehouse = warehouses.find((w) => w.id === warehouseId)
+  // Fetch warehouse data server-side
+  const warehouse = await getWarehouseById(warehouseId)
 
   if (!warehouse) {
     notFound()

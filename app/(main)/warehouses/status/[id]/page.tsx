@@ -1,7 +1,10 @@
+
+// app/(main)/warehouses/status/[id]/page.tsx
 import { warehouses } from "@/lib/dummy-data"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { changeWarehouseStatus } from "../../actions"
 
 interface ChangeWarehouseStatusPageProps {
   params: {
@@ -31,12 +34,18 @@ export default function ChangeWarehouseStatusPage({ params, searchParams }: Chan
     redirect("/warehouses")
   }
 
-  async function changeStatus() {
+  async function handleChangeStatus() {
     "use server"
 
-    // In a real app, this would update the database
-    // For now, we'll just redirect back to the warehouses page
-    redirect("/warehouses")
+    const newStatus = action === "activate" ? "active" : "inactive"
+    const result = await changeWarehouseStatus(id, newStatus)
+    
+    if (result.success) {
+      redirect("/warehouses")
+    } else {
+      // In a real app, you'd handle the error appropriately
+      redirect("/warehouses")
+    }
   }
 
   return (
@@ -67,7 +76,7 @@ export default function ChangeWarehouseStatusPage({ params, searchParams }: Chan
               <Link href="/warehouses">Cancel</Link>
             </Button>
 
-            <form action={changeStatus}>
+            <form action={handleChangeStatus}>
               <Button type="submit" variant={action === "activate" ? "default" : "secondary"}>
                 {action === "activate" ? "Activate" : "Deactivate"} Warehouse
               </Button>

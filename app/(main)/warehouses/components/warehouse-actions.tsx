@@ -1,3 +1,4 @@
+// app/(main)/warehouses/components/warehouse-actions.tsx
 "use client"
 
 import { useState } from "react"
@@ -39,11 +40,13 @@ export function WarehouseActions({ warehouseId, warehouseName }: WarehouseAction
     }, 100)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setIsExporting(true)
 
-    exportWarehouseDetails(warehouseId)
-      .then(() => {
+    try {
+      const result = await exportWarehouseDetails(warehouseId, "pdf")
+      
+      if (result.success) {
         // Create a fake download
         const filename = `Warehouse_${warehouseName.replace(/\s+/g, "_")}.pdf`
         const link = document.createElement("a")
@@ -55,18 +58,23 @@ export function WarehouseActions({ warehouseId, warehouseName }: WarehouseAction
           title: "Warehouse exported",
           description: `Warehouse details have been exported as ${filename}`,
         })
-      })
-      .catch((error) => {
-        console.error("Export error:", error)
+      } else {
         toast({
           title: "Export failed",
           description: "There was an error exporting the warehouse details.",
           variant: "destructive",
         })
+      }
+    } catch (error) {
+      console.error("Export error:", error)
+      toast({
+        title: "Export failed",
+        description: "There was an error exporting the warehouse details.",
+        variant: "destructive",
       })
-      .finally(() => {
-        setIsExporting(false)
-      })
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   return (

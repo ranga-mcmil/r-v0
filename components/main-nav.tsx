@@ -2,11 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAuth } from "./auth-provider"
 
 export function MainNav() {
   const pathname = usePathname()
-  const { user, hasPermission } = useAuth()
 
   return (
     <nav className="flex items-center space-x-4 lg:space-x-6">
@@ -66,16 +64,7 @@ export function MainNav() {
       >
         Warehouses
       </Link>
-      {hasPermission("manage_users") && (
-        <Link
-          href="/users"
-          className={`text-sm font-medium ${
-            pathname.startsWith("/users") ? "text-primary" : "text-muted-foreground"
-          } transition-colors hover:text-primary`}
-        >
-          Users
-        </Link>
-      )}
+      
       <Link
         href="/reports"
         className={`text-sm font-medium ${

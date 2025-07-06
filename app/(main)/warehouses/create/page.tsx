@@ -1,3 +1,4 @@
+// app/(main)/warehouses/create/page.tsx
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
