@@ -1,6 +1,6 @@
 // app/(main)/stock-movements/components/stats.tsx
 import { StatsCards, StatCard } from "@/components/stats/stats-cards"
-import { TrendingUp, TrendingDown, RefreshCw, AlertTriangle } from "lucide-react"
+import { Activity, TrendingUp, TrendingDown, RotateCcw } from "lucide-react"
 
 interface StatsProps {
   totalMovements: number
@@ -9,31 +9,36 @@ interface StatsProps {
   reversedMovements: number
 }
 
-export function Stats({ totalMovements, inboundMovements, outboundMovements, reversedMovements }: StatsProps) {
+export function Stats({ 
+  totalMovements, 
+  inboundMovements, 
+  outboundMovements, 
+  reversedMovements 
+}: StatsProps) {
   const stats: StatCard[] = [
     {
       title: "Total Movements",
       value: totalMovements,
       description: "All stock movements",
-      icon: RefreshCw,
+      icon: Activity,
     },
     {
-      title: "Inbound",
+      title: "Inbound Movements",
       value: inboundMovements,
-      description: "Stock increases",
+      description: "Stock additions & increases",
       icon: TrendingUp,
     },
     {
-      title: "Outbound",
+      title: "Outbound Movements",
       value: outboundMovements,
-      description: "Stock decreases",
+      description: "Sales & decreases",
       icon: TrendingDown,
     },
     {
-      title: "Reversed",
+      title: "Reversed Movements",
       value: reversedMovements,
       description: "Cancelled movements",
-      icon: AlertTriangle,
+      icon: RotateCcw,
     },
   ]
 
