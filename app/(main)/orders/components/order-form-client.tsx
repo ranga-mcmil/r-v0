@@ -30,6 +30,7 @@ interface OrderItem {
   quantity: number
   length: number
   width: number
+  weight: number
   discount: number
   notes?: string
   unitPrice?: number
@@ -49,7 +50,7 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
-    { productId: 0, quantity: 1, length: 1, width: 1, discount: 0 }
+    { productId: 0, quantity: 1, length: 1, width: 1, weight: 1, discount: 0 }
   ])
   const [paymentAmount, setPaymentAmount] = useState<number>(0)
   const [paymentMethod, setPaymentMethod] = useState<string>("")
@@ -89,7 +90,7 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
   }
 
   const addOrderItem = () => {
-    setOrderItems([...orderItems, { productId: 0, quantity: 1, length: 1, width: 1, discount: 0 }])
+    setOrderItems([...orderItems, { productId: 0, quantity: 1, length: 1, width: 1, weight: 1, discount: 0 }])
   }
 
   const removeOrderItem = (index: number) => {
@@ -105,29 +106,174 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
       const product = products.find(p => p.id === parseInt(value))
       if (product) {
         updatedItems[index].unitPrice = product.price
-        updatedItems[index].totalPrice = calculateItemTotal(updatedItems[index], product.price)
+        updatedItems[index].totalPrice = calculateItemTotal(updatedItems[index], product)
+        
+        // Reset measurement values based on product type
+        if (product.typeOfProduct === 'WEIGHT') {
+          updatedItems[index].length = 0
+          updatedItems[index].width = 0
+          updatedItems[index].weight = 1
+        } else if (product.typeOfProduct === 'LENGTH_WIDTH') {
+          updatedItems[index].length = 1
+          updatedItems[index].width = 1
+          updatedItems[index].weight = 0
+        } else {
+          // UNKNOWN - keep current values or set defaults
+          updatedItems[index].length = 1
+          updatedItems[index].width = 1
+          updatedItems[index].weight = 1
+        }
       }
     }
     
-    // Recalculate total when quantity, length, width, or discount changes
-    if (['quantity', 'length', 'width', 'discount'].includes(field)) {
+    // Recalculate total when quantity, measurements, or discount changes
+    if (['quantity', 'length', 'width', 'weight', 'discount'].includes(field)) {
       const product = products.find(p => p.id === updatedItems[index].productId)
       if (product) {
-        updatedItems[index].totalPrice = calculateItemTotal(updatedItems[index], product.price)
+        updatedItems[index].totalPrice = calculateItemTotal(updatedItems[index], product)
       }
     }
 
     setOrderItems(updatedItems)
   }
 
-  const calculateItemTotal = (item: OrderItem, unitPrice: number) => {
-    const baseTotal = item.quantity * item.length * item.width * unitPrice
+  const calculateItemTotal = (item: OrderItem, product: ProductDTO) => {
+    let baseTotal = 0
+    
+    // Calculate based on product type
+    switch (product.typeOfProduct) {
+      case 'LENGTH_WIDTH':
+        baseTotal = item.quantity * item.length * item.width * product.price
+        break
+      case 'WEIGHT':
+        baseTotal = item.quantity * item.weight * product.price
+        break
+      case 'UNKNOWN':
+      default:
+        // For unknown, use length * width as fallback
+        baseTotal = item.quantity * item.length * item.width * product.price
+        break
+    }
+    
     const discountAmount = (baseTotal * item.discount) / 100
     return baseTotal - discountAmount
   }
 
   const getTotalAmount = () => {
     return orderItems.reduce((total, item) => total + (item.totalPrice || 0), 0)
+  }
+
+  const getProductTypeLabel = (typeOfProduct: string) => {
+    switch (typeOfProduct) {
+      case 'LENGTH_WIDTH':
+        return 'Length × Width'
+      case 'WEIGHT':
+        return 'Weight'
+      case 'UNKNOWN':
+      default:
+        return 'Mixed'
+    }
+  }
+
+  const renderMeasurementInputs = (item: OrderItem, index: number) => {
+    const product = products.find(p => p.id === item.productId)
+    if (!product) return null
+
+    switch (product.typeOfProduct) {
+      case 'LENGTH_WIDTH':
+        return (
+          <>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.length}
+                onChange={(e) => updateOrderItem(index, 'length', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Length"
+              />
+            </TableCell>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.width}
+                onChange={(e) => updateOrderItem(index, 'width', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Width"
+              />
+            </TableCell>
+            <TableCell>
+              <span className="text-muted-foreground text-sm">-</span>
+            </TableCell>
+          </>
+        )
+      
+      case 'WEIGHT':
+        return (
+          <>
+            <TableCell>
+              <span className="text-muted-foreground text-sm">-</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-muted-foreground text-sm">-</span>
+            </TableCell>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.weight}
+                onChange={(e) => updateOrderItem(index, 'weight', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Weight"
+              />
+            </TableCell>
+          </>
+        )
+      
+      case 'UNKNOWN':
+      default:
+        return (
+          <>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.length}
+                onChange={(e) => updateOrderItem(index, 'length', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Length"
+              />
+            </TableCell>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.width}
+                onChange={(e) => updateOrderItem(index, 'width', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Width"
+              />
+            </TableCell>
+            <TableCell>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={item.weight}
+                onChange={(e) => updateOrderItem(index, 'weight', parseFloat(e.target.value) || 1)}
+                className="w-20"
+                placeholder="Weight"
+              />
+            </TableCell>
+          </>
+        )
+    }
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -282,9 +428,11 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Length</TableHead>
                   <TableHead>Width</TableHead>
+                  <TableHead>Weight</TableHead>
                   <TableHead>Discount %</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Notes</TableHead>
@@ -314,6 +462,13 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
                         </Select>
                       </TableCell>
                       <TableCell>
+                        {selectedProduct ? (
+                          <span className="text-xs px-2 py-1 bg-muted rounded">
+                            {getProductTypeLabel(selectedProduct.typeOfProduct)}
+                          </span>
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell>
                         <Input
                           type="number"
                           min="1"
@@ -322,26 +477,7 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
                           className="w-20"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={item.length}
-                          onChange={(e) => updateOrderItem(index, 'length', parseFloat(e.target.value) || 1)}
-                          className="w-20"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={item.width}
-                          onChange={(e) => updateOrderItem(index, 'width', parseFloat(e.target.value) || 1)}
-                          className="w-20"
-                        />
-                      </TableCell>
+                      {renderMeasurementInputs(item, index)}
                       <TableCell>
                         <Input
                           type="number"
