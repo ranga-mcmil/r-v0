@@ -1,8 +1,5 @@
-export default function Dashboard() {
-  
-  return (
-    <div className="flex min-h-screen w-full flex-col">
-      Dashboard Page
-    </div>
-  )
+import { redirect } from "next/navigation"
+
+export default function DashboardRedirect() {
+  redirect("/dashboard")
 }

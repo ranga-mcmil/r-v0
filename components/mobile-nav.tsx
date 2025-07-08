@@ -1,7 +1,5 @@
-// components/main-nav.tsx
+// components/mobile-nav.tsx
 import Link from "next/link"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/next-auth-options"
 import { USER_ROLES } from "@/lib/types"
 
 interface NavItem {
@@ -9,7 +7,7 @@ interface NavItem {
   label: string
 }
 
-function getNavItems(userRole: string): NavItem[] {
+function getMobileNavItems(userRole: string): NavItem[] {
   switch (userRole) {
     case USER_ROLES.ADMIN:
       return [
@@ -54,30 +52,27 @@ function getNavItems(userRole: string): NavItem[] {
   }
 }
 
-interface MainNavProps {
+interface MobileNavProps {
   pathname: string
+  userRole?: string
 }
 
-export async function MainNav({ pathname }: MainNavProps) {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user?.role) {
-    return null
-  }
+export function MobileNav({ pathname, userRole }: MobileNavProps) {
+  if (!userRole) return null
 
-  const navItems = getNavItems(session.user.role)
+  const navItems = getMobileNavItems(userRole)
 
   return (
-    <nav className="flex items-center space-x-4 lg:space-x-6">
+    <nav className="flex flex-col gap-4 px-2 py-4">
       {navItems.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className={`text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
             pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
-              ? "text-primary" 
-              : "text-muted-foreground"
-          } transition-colors hover:text-primary`}
+              ? "bg-primary/10 text-primary" 
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
         >
           {item.label}
         </Link>
