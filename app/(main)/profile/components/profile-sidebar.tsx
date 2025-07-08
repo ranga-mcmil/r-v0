@@ -1,12 +1,10 @@
 // app/(main)/profile/components/profile-sidebar.tsx
 import { Camera, Clock, Shield, User, UserRound } from "lucide-react"
 import { UserDTO } from "@/lib/http-service/users/types"
-import { BranchDTO } from "@/lib/http-service/branches/types"
 import { USER_ROLES } from "@/lib/types"
 
 interface ProfileSidebarProps {
   userData: UserDTO
-  branchData: BranchDTO | null
 }
 
 function getRoleDisplayName(role: string) {
@@ -25,7 +23,7 @@ function getRoleDisplayName(role: string) {
   }
 }
 
-export function ProfileSidebar({ userData, branchData }: ProfileSidebarProps) {
+export function ProfileSidebar({ userData }: ProfileSidebarProps) {
   return (
     <div className="sticky top-6">
       <div className="border rounded-lg">
@@ -53,8 +51,8 @@ export function ProfileSidebar({ userData, branchData }: ProfileSidebarProps) {
                 <User className="h-5 w-5 text-primary/60" />
               </div>
               <div>
-                <p className="text-sm font-medium">User ID</p>
-                <p className="text-sm text-muted-foreground">{userData.id}</p>
+                <p className="text-sm font-medium">Name</p>
+                <p className="text-sm text-muted-foreground">{userData.firstName} {userData.lastName}</p>
               </div>
             </div>
 
@@ -68,21 +66,14 @@ export function ProfileSidebar({ userData, branchData }: ProfileSidebarProps) {
               </div>
             </div>
 
-            {userData.branchId && (
+            {userData.branchId && userData.branchName && (
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                   <Clock className="h-5 w-5 text-primary/60" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Branch</p>
-                  <p className="text-sm text-muted-foreground">
-                    {branchData ? branchData.name : 'Loading...'}
-                  </p>
-                  {branchData?.location && (
-                    <p className="text-xs text-muted-foreground">
-                      {branchData.location}
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground">{userData.branchName}</p>
                 </div>
               </div>
             )}

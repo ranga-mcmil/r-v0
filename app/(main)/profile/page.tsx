@@ -1,12 +1,10 @@
 // app/(main)/profile/page.tsx
 import { getCurrentUserAction } from "@/actions/users"
-import { getBranchAction } from "@/actions/branches"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
 import { ProfileSidebar } from "./components/profile-sidebar"
 import { UserDTO } from "@/lib/http-service/users/types"
-import { BranchDTO } from "@/lib/http-service/branches/types"
 import { ProfileTabs } from "./components/profile-tabs"
 
 export default async function ProfilePage() {
@@ -17,9 +15,8 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  // Load user data and branch data on server
+  // Load user data on server
   let userData: UserDTO | null = null
-  let branchData: BranchDTO | null = null
   let error: string | null = null
 
   try {
@@ -27,19 +24,6 @@ export default async function ProfilePage() {
     
     if (response.success && response.data) {
       userData = response.data
-      
-      // If user has a branch, fetch branch details
-      if (userData.branchId) {
-        try {
-          const branchResponse = await getBranchAction(userData.branchId)
-          if (branchResponse.success && branchResponse.data) {
-            branchData = branchResponse.data
-          }
-        } catch (branchErr) {
-          console.error("Error loading branch data:", branchErr)
-          // Don't fail the whole page if branch loading fails
-        }
-      }
     } else {
       error = response.error || "Failed to load profile data"
     }
@@ -64,13 +48,13 @@ export default async function ProfilePage() {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Left sidebar with profile summary - Server rendered */}
         <div className="w-full md:w-1/3">
-          <ProfileSidebar userData={userData} branchData={branchData} />
+          <ProfileSidebar userData={userData} />
         </div>
 
         {/* Main content area - Tabs with forms */}
         <div className="w-full md:w-2/3">
           <h1 className="text-3xl font-bold mb-6">My Profile</h1>
-          <ProfileTabs userData={userData} branchData={branchData} />
+          <ProfileTabs userData={userData} />
         </div>
       </div>
     </div>

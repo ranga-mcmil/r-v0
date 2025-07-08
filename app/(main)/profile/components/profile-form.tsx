@@ -10,16 +10,14 @@ import { useToast } from "@/hooks/use-toast"
 import { Save, Loader2 } from "lucide-react"
 import { updateUserAction } from "@/actions/users"
 import { UserDTO } from "@/lib/http-service/users/types"
-import { BranchDTO } from "@/lib/http-service/branches/types"
 import { useRouter } from "next/navigation"
 import { USER_ROLES } from "@/lib/types"
 
 interface ProfileFormProps {
   userData: UserDTO
-  branchData: BranchDTO | null
 }
 
-export function ProfileForm({ userData, branchData }: ProfileFormProps) {
+export function ProfileForm({ userData }: ProfileFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -168,19 +166,17 @@ export function ProfileForm({ userData, branchData }: ProfileFormProps) {
                 Role cannot be changed. Contact an administrator to modify your role.
               </p>
             </div>
-            {userData.branchId && branchData && (
+            {userData.branchId && userData.branchName && (
               <div className="space-y-2">
                 <Label htmlFor="branchName">Branch</Label>
                 <Input
                   id="branchName"
-                  value={branchData.name}
+                  value={userData.branchName}
                   disabled={true}
                   className="bg-muted"
                   readOnly
                 />
-                <p className="text-xs text-muted-foreground">
-                  {branchData.location && `Located at: ${branchData.location}`}
-                </p>
+                
                 <p className="text-xs text-muted-foreground">
                   Branch assignment cannot be changed through this form.
                 </p>

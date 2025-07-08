@@ -23,7 +23,6 @@ function getNavItems(userRole: string): NavItem[] {
         { href: "/inventory", label: "Inventory" },
         { href: "/orders", label: "Orders" },
         { href: "/referrals", label: "Referrals" },
-        { href: "/reports", label: "Reports" }
       ]
     
     case USER_ROLES.MANAGER:
@@ -36,7 +35,6 @@ function getNavItems(userRole: string): NavItem[] {
         { href: "/inventory", label: "Inventory" },
         { href: "/orders", label: "Orders" },
         { href: "/referrals", label: "Referrals" },
-        { href: "/reports", label: "Reports" }
       ]
     
     case USER_ROLES.SALES_REP:
@@ -46,7 +44,6 @@ function getNavItems(userRole: string): NavItem[] {
         { href: "/products", label: "Products" },
         { href: "/orders", label: "Orders" },
         { href: "/referrals", label: "Referrals" },
-        { href: "/reports", label: "Reports" }
       ]
     
     default:
