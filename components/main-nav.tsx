@@ -40,6 +40,7 @@ function getNavItems(userRole: string): NavItem[] {
     case USER_ROLES.SALES_REP:
       return [
         { href: "/", label: "Dashboard" },
+        { href: "/pos", label: "POS" },
         { href: "/customers", label: "Customers" },
         { href: "/products", label: "Products" },
         { href: "/orders", label: "Orders" },

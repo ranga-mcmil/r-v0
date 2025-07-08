@@ -41,6 +41,7 @@ function getMobileNavItems(userRole: string): NavItem[] {
       return [
         { href: "/", label: "Dashboard" },
         { href: "/customers", label: "Customers" },
+        { href: "/pos", label: "POS" },
         { href: "/products", label: "Products" },
         { href: "/orders", label: "Orders" },
         { href: "/referrals", label: "Referrals" },
