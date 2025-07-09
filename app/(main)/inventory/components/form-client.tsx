@@ -87,7 +87,7 @@ export function FormClient({ mode, movementType, returnUrl }: FormClientProps) {
       if (mode === "add") {
         result = await addInventoryAction(formData, productId, batchId)
       } else {
-        const adjustmentType = movementType || "manual_adjustment"
+        const adjustmentType = movementType?.toUpperCase() || "manual_adjustment"
         result = await adjustInventoryAction(formData, productId, batchId, adjustmentType)
       }
 

@@ -35,6 +35,9 @@ const accessRules = {
       "/measurement-units", // Read-only
       "/measurement-units/new",
       "/inventory",
+      "/inventory/add",
+      "/inventory/adjust",
+      "/inventory/history/*",
       "/inventory/products/*/add",
       "/inventory/products/*/history",
       "/inventory/products/*/adjustments/remove",
