@@ -41,7 +41,6 @@ export default async function CreateFutureCollectionPage() {
           <OrderFormClient 
             orderType="FUTURE_COLLECTION" 
             returnUrl="/orders" 
-            branchId={session.user.branchId}
           />
         </Card>
       </main>

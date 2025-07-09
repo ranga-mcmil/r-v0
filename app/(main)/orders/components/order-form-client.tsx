@@ -40,10 +40,9 @@ interface OrderItem {
 interface OrderFormClientProps {
   orderType: OrderType
   returnUrl: string
-  branchId?: string
 }
 
-export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormClientProps) {
+export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [customers, setCustomers] = useState<CustomerDTO[]>([])
@@ -300,15 +299,6 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
       return
     }
 
-    if (!branchId) {
-      toast({
-        title: "Error",
-        description: "Branch ID is required",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
-      return
-    }
 
     try {
       const formData = new FormData()
@@ -329,17 +319,17 @@ export function OrderFormClient({ orderType, returnUrl, branchId }: OrderFormCli
 
       switch (orderType) {
         case 'QUOTATION':
-          result = await createQuotationAction(formData, customerId, branchId)
+          result = await createQuotationAction(formData, customerId)
           break
         case 'IMMEDIATE_SALE':
-          result = await createImmediateSaleAction(formData, customerId, branchId)
+          result = await createImmediateSaleAction(formData, customerId)
           break
         case 'FUTURE_COLLECTION':
-          result = await createFutureCollectionAction(formData, customerId, branchId)
+          result = await createFutureCollectionAction(formData, customerId)
           break
         case 'LAYAWAY':
           // Note: Layaway requires additional layaway plan data
-          result = await createLayawayAction(formData, customerId, branchId)
+          result = await createLayawayAction(formData, customerId)
           break
         default:
           throw new Error('Invalid order type')

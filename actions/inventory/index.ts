@@ -119,10 +119,33 @@ export async function getInventoryHistoryAction(
 }
 
 export async function getInventoryByBranchAction(
-  branchId: string, 
   params?: PaginationParams
 ): Promise<APIResponse<GetInventoryByBranchResponse>> {
-  return await inventoryService.getInventoryByBranch(branchId, params);
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to view inventory',
+      };
+    }
+    
+    return await inventoryService.getInventoryByBranch(session.user.branchId, params);
+  } else {
+    return {
+      success: false,
+      error: 'Branch ID is required for admin users',
+    };
+  }
 }
 
 export async function getInventoryAdjustmentsAction(

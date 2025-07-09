@@ -13,7 +13,7 @@ import {
 import { InventoryTable } from "./components/table"
 import { Stats } from "./components/stats"
 import { ExportButton } from "./components/export-button"
-import { getInventoryAdjustmentsAction } from "@/actions/inventory"
+import { getInventoryAdjustmentsAction, getInventoryByBranchAction } from "@/actions/inventory"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
@@ -30,7 +30,7 @@ export default async function InventoryPage() {
   let inventory: any[] = []
   
   try {
-    const inventoryResponse = await getInventoryAdjustmentsAction()
+    const inventoryResponse = await getInventoryByBranchAction()
     inventory = (inventoryResponse.success && inventoryResponse.data) ? inventoryResponse.data.content : []
   } catch (error) {
     console.error('Error fetching inventory:', error)

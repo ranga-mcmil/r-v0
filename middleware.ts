@@ -34,6 +34,7 @@ const accessRules = {
       "/thicknesses", // Read-only
       "/measurement-units", // Read-only
       "/measurement-units/new",
+      "/inventory/*",
       "/inventory",
       "/inventory/add",
       "/inventory/adjust",
@@ -51,7 +52,8 @@ const accessRules = {
       "/pos",
       "/quotations",
       "/layaway",
-      "/productions",
+      "/production",
+      "/production/create",
       "/productions/batches/*",
       "/productions/new",
       "/stock-movements",

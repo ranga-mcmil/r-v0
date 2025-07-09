@@ -41,7 +41,6 @@ export default async function CreateQuotationPage() {
           <OrderFormClient 
             orderType="QUOTATION" 
             returnUrl="/orders" 
-            branchId={session.user.branchId}
           />
         </Card>
       </main>
@@ -81,7 +80,6 @@ export async function CreateImmediateSalePage() {
           <OrderFormClient 
             orderType="IMMEDIATE_SALE" 
             returnUrl="/orders" 
-            branchId={session.user.branchId}
           />
         </Card>
       </main>

@@ -41,7 +41,6 @@ export default async function CreateImmediateSalePage() {
           <OrderFormClient 
             orderType="IMMEDIATE_SALE" 
             returnUrl="/orders" 
-            branchId={session.user.branchId}
           />
         </Card>
       </main>

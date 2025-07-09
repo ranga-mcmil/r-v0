@@ -44,9 +44,35 @@ import { revalidatePath } from "next/cache";
 
 export async function createQuotationAction(
   formData: FormData, 
-  customerId: number, 
-  branchId: string
+  customerId: number
 ): Promise<APIResponse<CreateOrderResponse, CreateQuotationPayload>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to create quotations',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
   const rawData: CreateQuotationPayload = {
     orderItems: JSON.parse(formData.get('orderItems') as string),
     notes: formData.get('notes') as string || undefined,
@@ -85,9 +111,35 @@ export async function createQuotationAction(
 
 export async function createLayawayAction(
   formData: FormData, 
-  customerId: number, 
-  branchId: string
+  customerId: number
 ): Promise<APIResponse<CreateOrderResponse, CreateLayawayPayload>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to create layaway orders',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
   const rawData: CreateLayawayPayload = {
     orderItems: JSON.parse(formData.get('orderItems') as string),
     notes: formData.get('notes') as string || undefined,
@@ -129,9 +181,35 @@ export async function createLayawayAction(
 
 export async function createImmediateSaleAction(
   formData: FormData, 
-  customerId: number, 
-  branchId: string
+  customerId: number
 ): Promise<APIResponse<CreateOrderResponse, CreateImmediateSalePayload>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to create immediate sales',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
   const rawData: CreateImmediateSalePayload = {
     orderItems: JSON.parse(formData.get('orderItems') as string),
     notes: formData.get('notes') as string || undefined,
@@ -173,9 +251,35 @@ export async function createImmediateSaleAction(
 
 export async function createFutureCollectionAction(
   formData: FormData, 
-  customerId: number, 
-  branchId: string
+  customerId: number
 ): Promise<APIResponse<CreateOrderResponse, CreateFutureCollectionPayload>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to create future collection orders',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
   const rawData: CreateFutureCollectionPayload = {
     orderItems: JSON.parse(formData.get('orderItems') as string),
     notes: formData.get('notes') as string || undefined,
@@ -279,7 +383,34 @@ export async function getCustomerOrdersAction(customerId: number): Promise<APIRe
   return await orderService.getCustomerOrders(customerId);
 }
 
-export async function getOrdersByBranchAction(branchId: string, status?: OrderStatus): Promise<APIResponse<CreateOrderResponse[]>> {
+export async function getOrdersByBranchAction(status?: OrderStatus): Promise<APIResponse<CreateOrderResponse[]>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to view orders',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
   return await orderService.getOrdersByBranch(branchId, status);
 }
 

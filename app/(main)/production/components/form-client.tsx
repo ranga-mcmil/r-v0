@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createProductionAction } from "@/actions/productions"
 import { getAllOrdersAction } from "@/actions/orders"
-import { getInventoryAdjustmentsAction } from "@/actions/inventory"
+import { getInventoryAdjustmentsAction, getInventoryByBranchAction } from "@/actions/inventory"
 
 interface FormClientProps {
   returnUrl: string
@@ -36,7 +36,7 @@ export function FormClient({ returnUrl }: FormClientProps) {
       try {
         const [ordersRes, inventoryRes] = await Promise.all([
           getAllOrdersAction(),
-          getInventoryAdjustmentsAction()
+          getInventoryByBranchAction()
         ])
 
         if (ordersRes.success && ordersRes.data) {

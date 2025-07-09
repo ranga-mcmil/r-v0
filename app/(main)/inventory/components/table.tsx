@@ -34,22 +34,22 @@ export function InventoryTable({ inventory = [] }: InventoryTableProps) {
             inventory.map((item) => (
               <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
                 <TableCell className="font-medium">
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.productName}
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.batchNumber}
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.quantity}
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.length && item.width 
                       ? `${item.length} × ${item.width}` 
                       : '-'
@@ -57,24 +57,24 @@ export function InventoryTable({ inventory = [] }: InventoryTableProps) {
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.weight || '-'}
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     <span className={item.totalStockQuantity <= 10 ? "text-red-600 font-medium" : ""}>
                       {item.totalStockQuantity}
                     </span>
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {new Date(item.createdAt).toLocaleDateString()}
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`/inventory/${item.id}`} className="block hover:underline">
+                  <Link href={`#`} className="block hover:underline">
                     {item.remarks || '-'}
                   </Link>
                 </TableCell>
