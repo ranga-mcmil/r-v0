@@ -31,6 +31,8 @@ const accessRules = {
       "/products/*",
       "/categories", // Read-only
       "/colors", // Read-only
+      "/customers/1",
+      "/customers/*",
       "/thicknesses", // Read-only
       "/measurement-units", // Read-only
       "/measurement-units/new",
@@ -55,8 +57,13 @@ const accessRules = {
       "/production",
       "/production/create",
       "/productions/batches/*",
+      "/categories/create",
       "/productions/new",
       "/stock-movements",
+      "/measurement-units/create",
+      "/thicknesses/*",
+      "/colors/*",
+      "/measurement-units/*",
       "/users", // Can manage branch users
       "/settings", // Branch settings only
       "/reports",
