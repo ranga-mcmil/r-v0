@@ -44,8 +44,9 @@ import { CustomerForm } from "./customer-form"
 import { OrderSummary } from "./order-summary"
 import { LayawayConfig } from "./layaway-config"
 
-// Enhanced cart item type
+// Enhanced cart item type with unique ID
 interface CartItem {
+  id: string // Unique identifier for each cart item
   productId: number
   name: string
   price: number
@@ -86,6 +87,9 @@ export function POSClient({
   searchParams,
   hasInitialErrors 
 }: POSClientProps) {
+  // Get default width from environment
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+  
   // State management
   const [isLoading, setIsLoading] = useState(false)
   const [products] = useState<ProductDTO[]>(initialProducts)
@@ -133,12 +137,17 @@ export function POSClient({
     }
   }, [orderType, layawayPlan.depositAmount])
 
+  // Generate unique ID for cart items
+  const generateCartItemId = () => {
+    return `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  }
+
   // Helper function to calculate line total based on product type
   const getLineTotal = (item: CartItem) => {
     let baseAmount = 0
     switch (item.typeOfProduct) {
       case "LENGTH_WIDTH":
-        baseAmount = item.price * item.quantity * item.length * item.width
+        baseAmount = item.price * item.quantity * item.length * DEFAULT_WIDTH
         break
       case "WEIGHT":
         baseAmount = item.price * item.quantity * item.weight
@@ -154,33 +163,23 @@ export function POSClient({
     return baseAmount - discountAmount
   }
 
-  // Cart operations
+  // Cart operations - Updated to always add as new item
   const addToCart = (product: ProductDTO) => {
-    const existingItem = cartItems.find(item => item.productId === product.id)
-    
-    if (existingItem) {
-      setCartItems(items => 
-        items.map(item => 
-          item.productId === product.id 
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      )
-    } else {
-      const newItem: CartItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        length: 1,
-        width: 1,
-        weight: 1,
-        discount: 0,
-        notes: "",
-        typeOfProduct: product.typeOfProduct
-      }
-      setCartItems(items => [...items, newItem])
+    const newItem: CartItem = {
+      id: generateCartItemId(), // Generate unique ID
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      length: 1,
+      width: DEFAULT_WIDTH, // Use environment variable
+      weight: 1,
+      discount: 0,
+      notes: "",
+      typeOfProduct: product.typeOfProduct
     }
+    
+    setCartItems(items => [...items, newItem])
 
     toast({
       title: "Added to cart",
@@ -188,16 +187,16 @@ export function POSClient({
     })
   }
 
-  const updateCartItem = (productId: number, updates: Partial<CartItem>) => {
+  const updateCartItem = (id: string, updates: Partial<CartItem>) => {
     setCartItems(items => 
       items.map(item => 
-        item.productId === productId ? { ...item, ...updates } : item
+        item.id === id ? { ...item, ...updates } : item
       )
     )
   }
 
-  const removeItem = (productId: number) => {
-    setCartItems(items => items.filter(item => item.productId !== productId))
+  const removeItem = (id: string) => {
+    setCartItems(items => items.filter(item => item.id !== id))
   }
 
   const clearCart = () => {
@@ -312,12 +311,12 @@ export function POSClient({
     setIsLoading(true)
 
     try {
-      // Prepare order items with correct structure
+      // Prepare order items with correct structure - use DEFAULT_WIDTH instead of form width
       const orderItems = cartItems.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
         length: item.typeOfProduct === "LENGTH_WIDTH" ? item.length : 1,
-        width: item.typeOfProduct === "LENGTH_WIDTH" ? item.width : 1,
+        width: DEFAULT_WIDTH, // Use environment variable
         discount: item.discount,
         notes: item.notes || ""
       }))

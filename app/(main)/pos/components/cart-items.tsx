@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Trash2 } from "lucide-react"
 
 interface CartItem {
+  id: string // Add unique ID for each cart item
   productId: number
   name: string
   price: number
@@ -21,12 +22,14 @@ interface CartItem {
 
 interface CartItemsProps {
   items: CartItem[]
-  onUpdateItem: (productId: number, updates: Partial<CartItem>) => void
-  onRemoveItem: (productId: number) => void
+  onUpdateItem: (id: string, updates: Partial<CartItem>) => void
+  onRemoveItem: (id: string) => void
   getLineTotal: (item: CartItem) => number
 }
 
 export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: CartItemsProps) {
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+
   if (items.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground">
@@ -38,7 +41,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <div key={item.productId} className="border-b pb-4 last:border-b-0 last:pb-0">
+        <div key={item.id} className="border-b pb-4 last:border-b-0 last:pb-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-sm">{item.name}</h4>
@@ -50,7 +53,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
               variant="ghost"
               size="icon"
               className="h-6 w-6"
-              onClick={() => onRemoveItem(item.productId)}
+              onClick={() => onRemoveItem(item.id)}
               type="button"
             >
               <Trash2 className="h-3 w-3" />
@@ -59,15 +62,15 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
           
           {/* Conditional input fields based on product type */}
           <div className="mt-2">
-            {/* Length and Width fields with Quantity - for LENGTH_WIDTH products */}
+            {/* Length fields with Quantity - for LENGTH_WIDTH products (removed width) */}
             {item.typeOfProduct === "LENGTH_WIDTH" && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">Qty</Label>
                   <Input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => onUpdateItem(item.productId, { quantity: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => onUpdateItem(item.id, { quantity: parseInt(e.target.value) || 1 })}
                     className="h-8 text-center"
                     min="1"
                   />
@@ -78,18 +81,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
                     type="number"
                     step="0.1"
                     value={item.length}
-                    onChange={(e) => onUpdateItem(item.productId, { length: parseFloat(e.target.value) || 1 })}
-                    className="h-8 text-center"
-                    min="0.1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Width (m)</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={item.width}
-                    onChange={(e) => onUpdateItem(item.productId, { width: parseFloat(e.target.value) || 1 })}
+                    onChange={(e) => onUpdateItem(item.id, { length: parseFloat(e.target.value) || 1 })}
                     className="h-8 text-center"
                     min="0.1"
                   />
@@ -105,7 +97,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
                   <Input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => onUpdateItem(item.productId, { quantity: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => onUpdateItem(item.id, { quantity: parseInt(e.target.value) || 1 })}
                     className="h-8 text-center"
                     min="1"
                   />
@@ -116,7 +108,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
                     type="number"
                     step="0.1"
                     value={item.weight}
-                    onChange={(e) => onUpdateItem(item.productId, { weight: parseFloat(e.target.value) || 1 })}
+                    onChange={(e) => onUpdateItem(item.id, { weight: parseFloat(e.target.value) || 1 })}
                     className="h-8 text-center"
                     min="0.1"
                   />
@@ -132,7 +124,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
                   <Input
                     type="number"
                     value={item.quantity}
-                    onChange={(e) => onUpdateItem(item.productId, { quantity: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => onUpdateItem(item.id, { quantity: parseInt(e.target.value) || 1 })}
                     className="h-8 text-center"
                     min="1"
                   />
@@ -150,7 +142,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
                 onChange={(e) => {
                   const discount = parseFloat(e.target.value) || 0
                   if (discount >= 0 && discount <= 100) {
-                    onUpdateItem(item.productId, { discount })
+                    onUpdateItem(item.id, { discount })
                   }
                 }}
                 className="h-8 text-center"
@@ -165,7 +157,7 @@ export function CartItems({ items, onUpdateItem, onRemoveItem, getLineTotal }: C
             {/* Display appropriate measurement based on product type */}
             {item.typeOfProduct === "LENGTH_WIDTH" && (
               <div className="text-sm text-muted-foreground">
-                Area: {(item.length * item.width).toFixed(2)} m²
+                Area: {(item.length * DEFAULT_WIDTH).toFixed(2)} m²
               </div>
             )}
             {item.typeOfProduct === "WEIGHT" && (

@@ -28,6 +28,7 @@ export function OrderSummary({
   paymentAmount 
 }: OrderSummaryProps) {
   const taxRate = 0.15
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
 
   return (
     <div className="space-y-2 pt-4 border-t">
