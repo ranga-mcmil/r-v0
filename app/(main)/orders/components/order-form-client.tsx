@@ -43,13 +43,16 @@ interface OrderFormClientProps {
 }
 
 export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) {
+  // Get default width from environment
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+  
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [customers, setCustomers] = useState<CustomerDTO[]>([])
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
-    { productId: 0, quantity: 1, length: 1, width: 1, weight: 1, discount: 0 }
+    { productId: 0, quantity: 1, length: 1, width: DEFAULT_WIDTH, weight: 1, discount: 0 }
   ])
   const [paymentAmount, setPaymentAmount] = useState<number>(0)
   const [paymentMethod, setPaymentMethod] = useState<string>("")
@@ -89,7 +92,7 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
   }
 
   const addOrderItem = () => {
-    setOrderItems([...orderItems, { productId: 0, quantity: 1, length: 1, width: 1, weight: 1, discount: 0 }])
+    setOrderItems([...orderItems, { productId: 0, quantity: 1, length: 1, width: DEFAULT_WIDTH, weight: 1, discount: 0 }])
   }
 
   const removeOrderItem = (index: number) => {
@@ -110,23 +113,23 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
         // Reset measurement values based on product type
         if (product.typeOfProduct === 'WEIGHT') {
           updatedItems[index].length = 0
-          updatedItems[index].width = 0
+          updatedItems[index].width = DEFAULT_WIDTH
           updatedItems[index].weight = 1
         } else if (product.typeOfProduct === 'LENGTH_WIDTH') {
           updatedItems[index].length = 1
-          updatedItems[index].width = 1
+          updatedItems[index].width = DEFAULT_WIDTH
           updatedItems[index].weight = 0
         } else {
           // UNKNOWN - keep current values or set defaults
           updatedItems[index].length = 1
-          updatedItems[index].width = 1
+          updatedItems[index].width = DEFAULT_WIDTH
           updatedItems[index].weight = 1
         }
       }
     }
     
     // Recalculate total when quantity, measurements, or discount changes
-    if (['quantity', 'length', 'width', 'weight', 'discount'].includes(field)) {
+    if (['quantity', 'length', 'weight', 'discount'].includes(field)) {
       const product = products.find(p => p.id === updatedItems[index].productId)
       if (product) {
         updatedItems[index].totalPrice = calculateItemTotal(updatedItems[index], product)
@@ -139,18 +142,18 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
   const calculateItemTotal = (item: OrderItem, product: ProductDTO) => {
     let baseTotal = 0
     
-    // Calculate based on product type
+    // Calculate based on product type - use DEFAULT_WIDTH for all calculations
     switch (product.typeOfProduct) {
       case 'LENGTH_WIDTH':
-        baseTotal = item.quantity * item.length * item.width * product.price
+        baseTotal = item.quantity * item.length * DEFAULT_WIDTH * product.price
         break
       case 'WEIGHT':
         baseTotal = item.quantity * item.weight * product.price
         break
       case 'UNKNOWN':
       default:
-        // For unknown, use length * width as fallback
-        baseTotal = item.quantity * item.length * item.width * product.price
+        // For unknown, use length * DEFAULT_WIDTH as fallback
+        baseTotal = item.quantity * item.length * DEFAULT_WIDTH * product.price
         break
     }
     
@@ -194,15 +197,9 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
               />
             </TableCell>
             <TableCell>
-              <Input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={item.width}
-                onChange={(e) => updateOrderItem(index, 'width', parseFloat(e.target.value) || 1)}
-                className="w-20"
-                placeholder="Width"
-              />
+              <span className="text-sm text-muted-foreground">
+                {DEFAULT_WIDTH}m (auto)
+              </span>
             </TableCell>
             <TableCell>
               <span className="text-muted-foreground text-sm">-</span>
@@ -217,7 +214,9 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
               <span className="text-muted-foreground text-sm">-</span>
             </TableCell>
             <TableCell>
-              <span className="text-muted-foreground text-sm">-</span>
+              <span className="text-sm text-muted-foreground">
+                {DEFAULT_WIDTH}m (auto)
+              </span>
             </TableCell>
             <TableCell>
               <Input
@@ -249,15 +248,9 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
               />
             </TableCell>
             <TableCell>
-              <Input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={item.width}
-                onChange={(e) => updateOrderItem(index, 'width', parseFloat(e.target.value) || 1)}
-                className="w-20"
-                placeholder="Width"
-              />
+              <span className="text-sm text-muted-foreground">
+                {DEFAULT_WIDTH}m (auto)
+              </span>
             </TableCell>
             <TableCell>
               <Input
@@ -299,10 +292,16 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
       return
     }
 
-
     try {
       const formData = new FormData()
-      formData.append('orderItems', JSON.stringify(orderItems))
+      
+      // Ensure all order items have DEFAULT_WIDTH set
+      const orderItemsWithWidth = orderItems.map(item => ({
+        ...item,
+        width: DEFAULT_WIDTH
+      }))
+      
+      formData.append('orderItems', JSON.stringify(orderItemsWithWidth))
       formData.append('notes', notes)
 
       if (orderType !== 'QUOTATION') {
@@ -413,6 +412,11 @@ export function OrderFormClient({ orderType, returnUrl }: OrderFormClientProps) 
           </div>
         </CardHeader>
         <CardContent>
+          {/* Width info note */}
+          <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg mb-4">
+            <strong>Note:</strong> Width is automatically set to {DEFAULT_WIDTH}m for all order items.
+          </div>
+
           <div className="rounded-md border">
             <Table>
               <TableHeader>

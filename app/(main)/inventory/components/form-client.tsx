@@ -22,6 +22,9 @@ interface FormClientProps {
 }
 
 export function FormClient({ mode, movementType, returnUrl }: FormClientProps) {
+  // Get default width from environment
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+  
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<ProductDTO[]>([])
@@ -80,6 +83,9 @@ export function FormClient({ mode, movementType, returnUrl }: FormClientProps) {
     const formData = new FormData(event.currentTarget)
     const productId = parseInt(formData.get('productId') as string)
     const batchId = parseInt(formData.get('batchId') as string)
+
+    // Set default width value in FormData
+    formData.set('width', DEFAULT_WIDTH.toString())
 
     try {
       let result
@@ -177,23 +183,13 @@ export function FormClient({ mode, movementType, returnUrl }: FormClientProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Removed width field - now using DEFAULT_WIDTH from environment */}
+      <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="length">Length</Label>
           <Input
             id="length"
             name="length"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="width">Width</Label>
-          <Input
-            id="width"
-            name="width"
             type="number"
             step="0.01"
             min="0"
@@ -211,6 +207,11 @@ export function FormClient({ mode, movementType, returnUrl }: FormClientProps) {
             placeholder="0.00"
           />
         </div>
+      </div>
+
+      {/* Display default width info */}
+      <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+        <strong>Note:</strong> Width is automatically set to {DEFAULT_WIDTH}m for all inventory entries.
       </div>
 
       <div className="space-y-2">
