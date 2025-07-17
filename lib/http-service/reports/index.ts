@@ -3,7 +3,7 @@
  * 
  * This file contains the ReportService class that implements API requests
  * to the report-controller endpoints.
- */
+*/
 
 import { apiClient, APIResponse } from "@/lib/http-service/apiClient";
 import { apiHeaderService } from "@/lib/http-service/apiHeaders";
