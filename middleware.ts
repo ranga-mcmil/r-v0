@@ -76,7 +76,10 @@ const accessRules = {
       "/unauthorized",
       "/terms",
       "/privacy",
-      "/contact"
+      "/contact",
+      "/reports/inventory",
+      "/reports/sales-summary",
+      "/reports/sales-detail"
     ],
     restrictedPaths: [
       "/branches/*/edit", // Cannot edit branches
