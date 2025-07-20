@@ -12,6 +12,7 @@ import {
   CreateProductionPayload, 
   CreateProductionResponse, 
   GetProductionsByBatchResponse,
+  GetProductionsByBranchResponse,
   ProductionPaginationParams
 } from "./types";
 import { getServerSession } from "next-auth";
@@ -48,7 +49,7 @@ export class ProductionService extends BaseAPIRequests {
   /**
    * Get productions by batch with pagination
    * 
-   * GET /api/productions/batches/{batchId}
+   * GET /api/productions/batches-by-batch-id/{batchId}/
    */
   async getProductionsByBatch(
     batchId: number,
@@ -69,7 +70,7 @@ export class ProductionService extends BaseAPIRequests {
       }, {} as Record<string, string>)
     ).toString();
     
-    const url = `/api/productions/batches/${batchId}?${queryString}`;
+    const url = `/api/productions/batches-by-batch-id/${batchId}/?${queryString}`;
 
     try {
       const session = await getServerSession(authOptions);
@@ -84,6 +85,49 @@ export class ProductionService extends BaseAPIRequests {
       };
     }
   }
+
+
+  /**
+   * Get productions by branch ID with pagination
+   * 
+   * GET /api/productions/batches-by-branch-id/{branchId}/
+   */
+  async getProductionsByBranchId(
+    branchId: string,
+    params?: ProductionPaginationParams
+  ): Promise<APIResponse<GetProductionsByBranchResponse>> {
+    const defaultParams: ProductionPaginationParams = {
+      pageNo: 0,
+      pageSize: 10,
+      sortBy: 'id',
+      sortDir: 'desc'
+    };
+
+    const queryParams = { ...defaultParams, ...params };
+    const queryString = new URLSearchParams(
+      Object.entries(queryParams).reduce((acc, [key, value]) => {
+        if (value !== undefined) acc[key] = String(value);
+        return acc;
+      }, {} as Record<string, string>)
+    ).toString();
+    
+    const url = `/api/productions/batches-by-branch-id/${branchId}/?${queryString}`;
+
+    try {
+      const session = await getServerSession(authOptions);
+      const headers = await this.apiHeaders.getHeaders(session);
+      const response = await this.client.get(url, { headers });
+      return this.handleResponse<GetProductionsByBranchResponse>(response);
+    } catch (error) {
+      console.error('Production Service request failed:', error);
+      return {
+        success: false,
+        error: (error as Error).message || 'An unknown error occurred',
+      };
+    }
+  }
 }
+
+
 
 export const productionService = new ProductionService(apiClient, apiHeaderService);

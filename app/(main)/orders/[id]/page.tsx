@@ -222,7 +222,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                     <TableHead>Product</TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Quantity</TableHead>
-                    <TableHead>Dimensions</TableHead>
+                    <TableHead>Length</TableHead>
                     <TableHead>Unit Price</TableHead>
                     <TableHead>Total Price</TableHead>
                     <TableHead>Notes</TableHead>
@@ -236,10 +236,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                         <TableCell>{item.productCode}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
                         <TableCell>
-                          {item.length && item.width 
-                            ? `${item.length} × ${item.width}` 
-                            : '-'
-                          }
+                          {item.length ? `${item.length}m` : '-'}
                         </TableCell>
                         <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
                         <TableCell>{formatCurrency(item.totalPrice)}</TableCell>

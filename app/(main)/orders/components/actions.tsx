@@ -417,7 +417,7 @@ export function Actions({ orderId, orderType, status, orderNumber }: ActionsProp
               <div class="item-row">
                 <div>
                   <div class="item-name">${item.productName}</div>
-                  ${item.length && item.width ? `<div class="item-details">${item.length}*${item.width}m</div>` : ''}
+                  ${item.length ? `<div class="item-details">${item.length}m</div>` : ''}
                 </div>
                 <div class="item-qty">${item.quantity}</div>
                 <div class="item-price">${item.unitPrice.toFixed(2)}</div>

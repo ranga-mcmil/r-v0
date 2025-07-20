@@ -1,5 +1,6 @@
 'use server';
 
+import { authOptions } from "@/lib/auth/next-auth-options";
 import { APIResponse } from "@/lib/http-service/apiClient";
 import { productionService } from "@/lib/http-service/productions";
 import { CreateProductionSchema } from "@/lib/http-service/productions/schema";
@@ -7,8 +8,10 @@ import {
   CreateProductionPayload, 
   CreateProductionResponse, 
   GetProductionsByBatchResponse,
+  GetProductionsByBranchResponse,
   ProductionPaginationParams
 } from "@/lib/http-service/productions/types";
+import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
 export async function createProductionAction(
@@ -65,6 +68,7 @@ export async function getProductionsByBatchAction(
   return await productionService.getProductionsByBatch(batchId, params);
 }
 
+
 /**
  * Get productions by batch with revalidation - useful for pages that need fresh data
  */
@@ -100,4 +104,82 @@ export async function createProductionWithFullRevalidationAction(
   }
   
   return result;
+}
+
+
+export async function getProductionsByBranchIdAction(
+  params?: ProductionPaginationParams
+): Promise<APIResponse<GetProductionsByBranchResponse>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to view productions',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
+  return await productionService.getProductionsByBranchId(branchId, params);
+}
+
+
+/**
+ * Get productions by branch ID with revalidation - useful for pages that need fresh data
+ */
+export async function getProductionsByBranchIdWithRevalidationAction(
+  params?: ProductionPaginationParams
+): Promise<APIResponse<GetProductionsByBranchResponse>> {
+  // Get session to determine branchId
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return {
+      success: false,
+      error: 'Authentication required',
+    };
+  }
+
+  // For non-admin users, use their assigned branch
+  let branchId: string;
+  if (session.user.role !== 'ROLE_ADMIN') {
+    if (!session.user.branchId) {
+      return {
+        success: false,
+        error: 'You must be assigned to a branch to view productions',
+      };
+    }
+    branchId = session.user.branchId;
+  } else {
+    return {
+      success: false,
+      error: 'Admin users must specify a branch ID',
+    };
+  }
+
+  const res = await productionService.getProductionsByBranchId(branchId, params);
+  
+  if (res.success) {
+    revalidatePath('/productions');
+    revalidatePath(`/branches/${branchId}/productions`);
+  }
+  
+  return res;
 }

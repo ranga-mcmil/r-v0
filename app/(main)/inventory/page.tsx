@@ -1,7 +1,7 @@
 // app/(main)/inventory/page.tsx
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, TrendingUp, TrendingDown, History } from "lucide-react"
+import { Plus, TrendingUp, TrendingDown, History, Package } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,6 +93,16 @@ export default async function InventoryPage() {
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
+                
+                <DropdownMenuItem asChild>
+                  <Link href="/production">
+                    <Package className="mr-2 h-4 w-4 text-orange-600" />
+                    <div className="flex flex-col">
+                      <span>View Productions</span>
+                      <span className="text-xs text-muted-foreground">Manage productions</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
                 
                 <DropdownMenuItem asChild>
                   <Link href="/inventory/history">

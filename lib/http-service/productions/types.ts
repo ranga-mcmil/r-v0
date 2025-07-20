@@ -39,3 +39,4 @@ export interface PaginationResponse<T> {
 
 export type CreateProductionResponse = ProductionDTO;
 export type GetProductionsByBatchResponse = PaginationResponse<ProductionDTO>;
+export type GetProductionsByBranchResponse = PaginationResponse<ProductionDTO>;

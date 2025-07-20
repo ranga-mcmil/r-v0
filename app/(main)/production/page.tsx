@@ -5,34 +5,24 @@ import { Plus } from "lucide-react"
 import { ProductionTable } from "./components/table"
 import { Stats } from "./components/stats"
 import { ExportButton } from "./components/export-button"
-import { getProductionsByBatchAction } from "@/actions/productions"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/next-auth-options"
-import { redirect } from "next/navigation"
+import { getProductionsByBranchIdAction } from "@/actions/productions"
 
 export default async function ProductionPage() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session) {
-    redirect("/login")
-  }
-
-  // Note: We'll need to modify this to get all productions, not just by batch
-  // For now, using an empty array as placeholder
+  // Fetch data server-side using existing action
   let productions: any[] = []
   
   try {
-    // TODO: Add getProductionsAction when available
-    // const productionsResponse = await getProductionsAction()
-    // productions = (productionsResponse.success && productionsResponse.data) ? productionsResponse.data.content : []
+    const productionsResponse = await getProductionsByBranchIdAction()
+    productions = (productionsResponse.success && productionsResponse.data) ? productionsResponse.data.content : []
   } catch (error) {
     console.error('Error fetching productions:', error)
     productions = []
   }
 
+  // Calculate stats from the fetched data
   const completedProductions = productions.filter(p => p.status === 'completed').length
   const pendingProductions = productions.filter(p => p.status === 'pending').length
-  const totalQuantity = productions.reduce((sum, p) => sum + p.quantity, 0)
+  const totalQuantity = productions.reduce((sum, p) => sum + (p.quantity || 0), 0)
 
   const stats = {
     totalProductions: productions.length,
