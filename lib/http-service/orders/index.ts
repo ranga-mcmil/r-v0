@@ -3,6 +3,7 @@
  * 
  * This file contains the OrderService class that implements API requests
  * to the order-controller endpoints.
+ * Updated to include referralId support for order creation endpoints.
  */
 
 import { apiClient, APIResponse } from "@/lib/http-service/apiClient";
@@ -78,9 +79,11 @@ export class OrderService extends BaseAPIRequests {
   async createLayaway(
     customerId: number,
     branchId: string,
-    payload: CreateLayawayPayload
+    payload: CreateLayawayPayload,
+    referralId?: number
   ): Promise<APIResponse<CreateOrderResponse>> {
-    const url = `/api/orders/${customerId}/${branchId}/laybye`;
+    const queryParams = referralId ? `?referralId=${referralId}` : '';
+    const url = `/api/orders/${customerId}/${branchId}/laybye${queryParams}`;
 
     try {
       const session = await getServerSession(authOptions);
@@ -104,9 +107,11 @@ export class OrderService extends BaseAPIRequests {
   async createImmediateSale(
     customerId: number,
     branchId: string,
-    payload: CreateImmediateSalePayload
+    payload: CreateImmediateSalePayload,
+    referralId?: number
   ): Promise<APIResponse<CreateOrderResponse>> {
-    const url = `/api/orders/${customerId}/${branchId}/immediate-sale`;
+    const queryParams = referralId ? `?referralId=${referralId}` : '';
+    const url = `/api/orders/${customerId}/${branchId}/immediate-sale${queryParams}`;
 
     try {
       const session = await getServerSession(authOptions);
@@ -130,9 +135,11 @@ export class OrderService extends BaseAPIRequests {
   async createFutureCollection(
     customerId: number,
     branchId: string,
-    payload: CreateFutureCollectionPayload
+    payload: CreateFutureCollectionPayload,
+    referralId?: number
   ): Promise<APIResponse<CreateOrderResponse>> {
-    const url = `/api/orders/${customerId}/${branchId}/future-collection`;
+    const queryParams = referralId ? `?referralId=${referralId}` : '';
+    const url = `/api/orders/${customerId}/${branchId}/future-collection${queryParams}`;
 
     try {
       const session = await getServerSession(authOptions);

@@ -3,7 +3,7 @@
  * 
  * This file contains the TypeScript type definitions for order-related data
  * based on the OpenAPI specification.
- * Updated to match API spec exactly.
+ * Updated to match API spec exactly and include referral support.
  */
 
 import { z } from 'zod';
@@ -62,8 +62,8 @@ export interface OrderItemResponseDTO {
   productName: string;
   productCode: string;
   quantity: number;
-  length: number; // Added missing field
-  width: number; // Added missing field
+  length: number;
+  width: number;
   unitPrice: number;
   totalPrice: number;
   notes?: string;
@@ -82,6 +82,7 @@ export interface PaymentResponseDTO {
   reversed: boolean;
 }
 
+// Updated to include referralName field from API spec
 export interface OrderResponseDTO {
   id: number;
   orderNumber: string;
@@ -89,6 +90,7 @@ export interface OrderResponseDTO {
   status: OrderStatus;
   customerName: string;
   branchName: string;
+  referralName: string; // Added referral support from API spec
   totalAmount: number;
   paidAmount: number;
   balanceAmount: number;
@@ -97,6 +99,24 @@ export interface OrderResponseDTO {
   completionDate?: string; // date-time
   orderItems: OrderItemResponseDTO[];
   payments: PaymentResponseDTO[];
+  notes?: string;
+}
+
+// Updated to include referralName field from API spec
+export interface OrderListResponseDTO {
+  id: number;
+  orderNumber: string;
+  orderType: OrderType;
+  status: OrderStatus;
+  customerName: string;
+  branchName: string;
+  referralName: string; // Added referral support from API spec
+  totalAmount: number;
+  paidAmount: number;
+  balanceAmount: number;
+  createdDate: string; // date-time
+  expectedCollectionDate?: string; // date
+  completionDate?: string; // date-time
   notes?: string;
 }
 
@@ -192,6 +212,20 @@ export interface PageOrderResponseDTO {
   empty: boolean;
 }
 
+export interface PageOrderListResponseDTO {
+  totalElements: number;
+  totalPages: number;
+  pageable: PageableObject;
+  size: number;
+  content: OrderListResponseDTO[];
+  number: number;
+  sort: SortObject;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 // Parameters for API calls - Fixed to match API spec exactly
 export interface OrderListParams {
   pageNo?: number;    // Correct parameter name
@@ -221,14 +255,14 @@ export interface SalesReportParams {
 // Response type aliases
 export type CreateOrderResponse = OrderResponseDTO;
 export type GetOrderResponse = OrderResponseDTO;
-export type GetOrdersResponse = PageOrderResponseDTO;
+export type GetOrdersResponse = PageOrderListResponseDTO;
 export type GetOrderPaymentsResponse = PaymentResponseDTO[];
 export type GetLayawayScheduleResponse = LayawayScheduleDTO;
 export type GetLayawayPaymentSummaryResponse = LayawayPaymentSummaryDTO;
 export type GetStockMovementsResponse = StockMovementDTO[];
 export type GetSalesReportResponse = SalesReportDTO;
 export type GetOrdersReadyForCollectionResponse = OrderResponseDTO[];
-export type GetActiveLayawayOrdersResponse = OrderResponseDTO[];
-export type GetOverdueLayawayOrdersResponse = OrderResponseDTO[];
+export type GetActiveLayawayOrdersResponse = OrderListResponseDTO[];
+export type GetOverdueLayawayOrdersResponse = OrderListResponseDTO[];
 export type GetCustomerOrdersResponse = OrderResponseDTO[];
-export type GetOrdersByBranchResponse = OrderResponseDTO[];
+export type GetOrdersByBranchResponse = OrderListResponseDTO[];

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { getProductsAction } from "@/actions/products"
 import { getCustomersAction } from "@/actions/customers"
+import { getAllReferralsAction } from "@/actions/referrals"
 import { getCategoriesAction } from "@/actions/categories"
 import { USER_ROLES } from "@/lib/types"
 import { POSClient } from "./components/pos-client"
@@ -48,23 +49,31 @@ export default async function POSPage({ searchParams }: POSPageProps) {
   // Fetch data server-side using existing actions
   let products: any[] = []
   let customers: any[] = []
+  let referrals: any[] = []
   let categories: any[] = []
   let hasErrors = false
   
   try {
-    const [productsResponse, customersResponse, categoriesResponse] = await Promise.all([
+    const [productsResponse, customersResponse, referralsResponse, categoriesResponse] = await Promise.all([
       getProductsAction({ pageNo: 0, pageSize: 100, ...branchFilter }),
       getCustomersAction({ pageNo: 0, pageSize: 100 }),
+      getAllReferralsAction({ pageNo: 0, pageSize: 100 }), // Fetch all referrals
       getCategoriesAction()
     ])
     
     products = (productsResponse.success && productsResponse.data) ? productsResponse.data.content : []
     customers = (customersResponse.success && customersResponse.data) ? customersResponse.data.content : []
+    referrals = (referralsResponse.success && referralsResponse.data) ? referralsResponse.data.content : []
     categories = (categoriesResponse.success && categoriesResponse.data) ? categoriesResponse.data : []
 
     // Check if any critical data failed to load
     if (!productsResponse.success || !customersResponse.success || !categoriesResponse.success) {
       hasErrors = true
+    }
+
+    // Referrals are optional, so don't mark as error if they fail to load
+    if (!referralsResponse.success) {
+      console.warn('Failed to load referrals, but continuing with empty list')
     }
   } catch (error) {
     console.error('Error loading POS data:', error)
@@ -75,6 +84,7 @@ export default async function POSPage({ searchParams }: POSPageProps) {
     <POSClient
       initialProducts={products}
       initialCustomers={customers}
+      initialReferrals={referrals}
       categories={categories}
       userBranch={session.user.branchId}
       searchParams={searchParams}

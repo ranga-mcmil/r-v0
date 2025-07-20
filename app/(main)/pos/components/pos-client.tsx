@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { AlertCircle, CreditCard, FileText, Loader2, Calendar, DollarSign, Search, Trash2, User } from "lucide-react"
+import { AlertCircle, CreditCard, FileText, Loader2, Calendar, DollarSign, Search, Trash2, User, UserPlus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
@@ -26,14 +26,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { createCustomerAction } from "@/actions/customers"
 import { 
   createQuotationAction, 
-  createLayawayAction, 
-  createImmediateSaleAction, 
-  createFutureCollectionAction 
+  createLayawayWithReferralAction, 
+  createImmediateSaleWithReferralAction, 
+  createFutureCollectionWithReferralAction 
 } from "@/actions/orders"
 
 // Import types
 import { ProductDTO } from "@/lib/http-service/products/types"
 import { CustomerDTO } from "@/lib/http-service/customers/types"
+import { ReferralDTO } from "@/lib/http-service/referrals/types"
 import { ProductCategoryDTO } from "@/lib/http-service/categories/types"
 import { OrderType, PaymentMethod } from "@/lib/http-service/orders/types"
 
@@ -41,6 +42,7 @@ import { OrderType, PaymentMethod } from "@/lib/http-service/orders/types"
 import { ProductGrid } from "./product-grid"
 import { CartItems } from "./cart-items"
 import { CustomerForm } from "./customer-form"
+import { ReferralForm } from "./referral-form"
 import { OrderSummary } from "./order-summary"
 import { LayawayConfig } from "./layaway-config"
 
@@ -57,6 +59,8 @@ interface CartItem {
   discount: number
   notes?: string
   typeOfProduct: string
+  isReferable?: boolean // Add isReferable property
+  referrablePercentage?: number // Add referrable percentage
 }
 
 // Layaway configuration type
@@ -70,6 +74,7 @@ interface LayawayPlan {
 interface POSClientProps {
   initialProducts: ProductDTO[]
   initialCustomers: CustomerDTO[]
+  initialReferrals: ReferralDTO[]
   categories: ProductCategoryDTO[]
   userBranch?: string
   searchParams: {
@@ -82,6 +87,7 @@ interface POSClientProps {
 export function POSClient({ 
   initialProducts, 
   initialCustomers, 
+  initialReferrals,
   categories, 
   userBranch,
   searchParams,
@@ -94,14 +100,17 @@ export function POSClient({
   const [isLoading, setIsLoading] = useState(false)
   const [products] = useState<ProductDTO[]>(initialProducts)
   const [customers, setCustomers] = useState<CustomerDTO[]>(initialCustomers)
+  const [referrals, setReferrals] = useState<ReferralDTO[]>(initialReferrals)
   
   // UI states
   const [searchQuery, setSearchQuery] = useState(searchParams.search || "")
   const [showCustomerForm, setShowCustomerForm] = useState(false)
+  const [showReferralForm, setShowReferralForm] = useState(false)
   
   // Cart and form states
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState("")
+  const [selectedReferral, setSelectedReferral] = useState("none")
   const [orderType, setOrderType] = useState<OrderType>("IMMEDIATE_SALE")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH")
   const [notes, setNotes] = useState("")
@@ -176,7 +185,9 @@ export function POSClient({
       weight: 1,
       discount: 0,
       notes: "",
-      typeOfProduct: product.typeOfProduct
+      typeOfProduct: product.typeOfProduct,
+      isReferable: product.isReferable, // Include isReferable from product
+      referrablePercentage: product.referrablePercentage // Include referrable percentage
     }
     
     setCartItems(items => [...items, newItem])
@@ -196,12 +207,22 @@ export function POSClient({
   }
 
   const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id))
+    setCartItems(items => {
+      const newItems = items.filter(item => item.id !== id)
+      
+      // If no referable items remain, reset referral selection
+      if (!newItems.some(item => item.isReferable === true)) {
+        setSelectedReferral("none")
+      }
+      
+      return newItems
+    })
   }
 
   const clearCart = () => {
     setCartItems([])
     setSelectedCustomer("")
+    setSelectedReferral("none")
     setNotes("")
     setPaymentAmount("")
     setExpectedCollectionDate("")
@@ -222,6 +243,9 @@ export function POSClient({
   const taxRate = 0.15
   const taxAmount = subtotal * taxRate
   const total = subtotal + taxAmount
+
+  // Check if any cart items are referable
+  const hasReferableItems = cartItems.some(item => item.isReferable === true)
 
   // Calculate layaway installment amount
   const calculatedInstallmentAmount = layawayPlan.numberOfInstallments > 0 
@@ -286,6 +310,13 @@ export function POSClient({
     setShowCustomerForm(false)
   }
 
+  // Handle referral creation
+  const handleReferralCreated = (referral: ReferralDTO) => {
+    setReferrals(prev => [...prev, referral])
+    setSelectedReferral(referral.id.toString())
+    setShowReferralForm(false)
+  }
+
   // Handle order submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -322,27 +353,33 @@ export function POSClient({
       }))
 
       const customerId = parseInt(selectedCustomer)
+      const referralId = selectedReferral && selectedReferral !== "none" ? parseInt(selectedReferral) : undefined
       const formData = new FormData()
       
       formData.append('orderItems', JSON.stringify(orderItems))
       formData.append('notes', notes)
+      
+      // Add referral ID if selected and not "none"
+      if (referralId) {
+        formData.append('referralId', referralId.toString())
+      }
 
       let response
 
       switch (orderType) {
         case "QUOTATION":
-          response = await createQuotationAction(formData, customerId, userBranch)
+          response = await createQuotationAction(formData, customerId)
           break
         case "IMMEDIATE_SALE":
           formData.append('paymentAmount', paymentAmount)
           formData.append('paymentMethod', paymentMethod)
-          response = await createImmediateSaleAction(formData, customerId, userBranch)
+          response = await createImmediateSaleWithReferralAction(formData, customerId)
           break
         case "FUTURE_COLLECTION":
           formData.append('paymentAmount', paymentAmount)
           formData.append('paymentMethod', paymentMethod)
           formData.append('expectedCollectionDate', expectedCollectionDate)
-          response = await createFutureCollectionAction(formData, customerId, userBranch)
+          response = await createFutureCollectionWithReferralAction(formData, customerId)
           break
         case "LAYAWAY":
           formData.append('paymentAmount', layawayPlan.depositAmount.toString())
@@ -357,7 +394,7 @@ export function POSClient({
           }
           formData.append('layawayPlan', JSON.stringify(layawayPlanData))
           
-          response = await createLayawayAction(formData, customerId, userBranch)
+          response = await createLayawayWithReferralAction(formData, customerId)
           break
         default:
           throw new Error("Invalid order type")
@@ -526,6 +563,44 @@ export function POSClient({
                   </div>
                 </div>
 
+                {/* Referral Selection (Optional) - Only show if cart has referable items */}
+                {hasReferableItems && (
+                  <div>
+                    <Label>Referral (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedReferral} onValueChange={setSelectedReferral}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select referral (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No referral</SelectItem>
+                          {referrals.map((referral) => (
+                            <SelectItem key={referral.id} value={referral.id.toString()}>
+                              {referral.fullName} - {referral.phoneNumber}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowReferralForm(true)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {selectedReferral && selectedReferral !== "none" && (
+                      <div className="text-xs text-green-600 mt-1">
+                        ✓ Referral commission will be calculated for eligible items
+                      </div>
+                    )}
+                    <div className="text-xs text-blue-600 mt-1">
+                      💡 Referral commissions apply to: {cartItems.filter(item => item.isReferable).map(item => item.name).join(', ')}
+                    </div>
+                  </div>
+                )}
+
                 {/* Layaway Configuration */}
                 {orderType === "LAYAWAY" && (
                   <LayawayConfig
@@ -687,6 +762,22 @@ export function POSClient({
           <CustomerForm
             onCustomerCreated={handleCustomerCreated}
             onCancel={() => setShowCustomerForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Referral Creation Dialog */}
+      <Dialog open={showReferralForm} onOpenChange={setShowReferralForm}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Referral</DialogTitle>
+            <DialogDescription>
+              Add a new referral to the system. Referrals can earn commission on orders.
+            </DialogDescription>
+          </DialogHeader>
+          <ReferralForm
+            onReferralCreated={handleReferralCreated}
+            onCancel={() => setShowReferralForm(false)}
           />
         </DialogContent>
       </Dialog>

@@ -111,7 +111,8 @@ export async function createQuotationAction(
 
 export async function createLayawayAction(
   formData: FormData, 
-  customerId: number
+  customerId: number,
+  referralId?: number
 ): Promise<APIResponse<CreateOrderResponse, CreateLayawayPayload>> {
   // Get session to determine branchId
   const session = await getServerSession(authOptions);
@@ -160,7 +161,7 @@ export async function createLayawayAction(
     }
   }
 
-  const res = await orderService.createLayaway(customerId, branchId, validatedData.data);
+  const res = await orderService.createLayaway(customerId, branchId, validatedData.data, referralId);
 
   if (res.success) {
     revalidatePath('/orders');
@@ -181,7 +182,8 @@ export async function createLayawayAction(
 
 export async function createImmediateSaleAction(
   formData: FormData, 
-  customerId: number
+  customerId: number,
+  referralId?: number
 ): Promise<APIResponse<CreateOrderResponse, CreateImmediateSalePayload>> {
   // Get session to determine branchId
   const session = await getServerSession(authOptions);
@@ -229,7 +231,7 @@ export async function createImmediateSaleAction(
     }
   }
 
-  const res = await orderService.createImmediateSale(customerId, branchId, validatedData.data);
+  const res = await orderService.createImmediateSale(customerId, branchId, validatedData.data, referralId);
 
   if (res.success) {
     revalidatePath('/orders');
@@ -251,7 +253,8 @@ export async function createImmediateSaleAction(
 
 export async function createFutureCollectionAction(
   formData: FormData, 
-  customerId: number
+  customerId: number,
+  referralId?: number
 ): Promise<APIResponse<CreateOrderResponse, CreateFutureCollectionPayload>> {
   // Get session to determine branchId
   const session = await getServerSession(authOptions);
@@ -300,7 +303,7 @@ export async function createFutureCollectionAction(
     }
   }
 
-  const res = await orderService.createFutureCollection(customerId, branchId, validatedData.data);
+  const res = await orderService.createFutureCollection(customerId, branchId, validatedData.data, referralId);
 
   if (res.success) {
     revalidatePath('/orders');
@@ -317,6 +320,55 @@ export async function createFutureCollectionAction(
       inputData: rawData
     }
   }
+}
+
+// =====================================
+// ENHANCED ACTION HELPERS WITH REFERRAL SUPPORT
+// =====================================
+
+/**
+ * Helper function to extract referralId from form data
+ */
+function extractReferralId(formData: FormData): number | undefined {
+  const referralIdStr = formData.get('referralId') as string;
+  if (referralIdStr && referralIdStr !== '') {
+    const referralId = parseInt(referralIdStr);
+    return isNaN(referralId) ? undefined : referralId;
+  }
+  return undefined;
+}
+
+/**
+ * Create layaway with automatic referral extraction
+ */
+export async function createLayawayWithReferralAction(
+  formData: FormData, 
+  customerId: number
+): Promise<APIResponse<CreateOrderResponse, CreateLayawayPayload>> {
+  const referralId = extractReferralId(formData);
+  return await createLayawayAction(formData, customerId, referralId);
+}
+
+/**
+ * Create immediate sale with automatic referral extraction
+ */
+export async function createImmediateSaleWithReferralAction(
+  formData: FormData, 
+  customerId: number
+): Promise<APIResponse<CreateOrderResponse, CreateImmediateSalePayload>> {
+  const referralId = extractReferralId(formData);
+  return await createImmediateSaleAction(formData, customerId, referralId);
+}
+
+/**
+ * Create future collection with automatic referral extraction
+ */
+export async function createFutureCollectionWithReferralAction(
+  formData: FormData, 
+  customerId: number
+): Promise<APIResponse<CreateOrderResponse, CreateFutureCollectionPayload>> {
+  const referralId = extractReferralId(formData);
+  return await createFutureCollectionAction(formData, customerId, referralId);
 }
 
 // =====================================
@@ -340,12 +392,15 @@ export async function searchOrdersAction(formData: FormData): Promise<APIRespons
     orderNumber: formData.get('orderNumber') as string || undefined,
     orderType: formData.get('orderType') as OrderType || undefined,
     status: formData.get('status') as OrderStatus || undefined,
-    customerId: formData.get('customerId') ? parseInt(formData.get('customerId') as string) : undefined,
-    branchId: formData.get('branchId') as string || undefined,
-    startDate: formData.get('startDate') as string || undefined,
-    endDate: formData.get('endDate') as string || undefined,
-    page: formData.get('page') ? parseInt(formData.get('page') as string) : undefined,
-    size: formData.get('size') ? parseInt(formData.get('size') as string) : undefined,
+    customerName: formData.get('customerName') as string || undefined,
+    branchName: formData.get('branchName') as string || undefined,
+    fromDate: formData.get('fromDate') as string || undefined,
+    toDate: formData.get('toDate') as string || undefined,
+    userName: formData.get('userName') as string || undefined,
+    pageNo: formData.get('pageNo') ? parseInt(formData.get('pageNo') as string) : undefined,
+    pageSize: formData.get('pageSize') ? parseInt(formData.get('pageSize') as string) : undefined,
+    sortBy: formData.get('sortBy') as string || undefined,
+    sortDir: formData.get('sortDir') as 'asc' | 'desc' || undefined,
   }
 
   // Validate the form data
