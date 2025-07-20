@@ -59,8 +59,6 @@ interface CartItem {
   discount: number
   notes?: string
   typeOfProduct: string
-  isReferable?: boolean // Add isReferable property
-  referrablePercentage?: number // Add referrable percentage
 }
 
 // Layaway configuration type
@@ -185,9 +183,7 @@ export function POSClient({
       weight: 1,
       discount: 0,
       notes: "",
-      typeOfProduct: product.typeOfProduct,
-      isReferable: product.isReferable, // Include isReferable from product
-      referrablePercentage: product.referrablePercentage // Include referrable percentage
+      typeOfProduct: product.typeOfProduct
     }
     
     setCartItems(items => [...items, newItem])
@@ -207,16 +203,7 @@ export function POSClient({
   }
 
   const removeItem = (id: string) => {
-    setCartItems(items => {
-      const newItems = items.filter(item => item.id !== id)
-      
-      // If no referable items remain, reset referral selection
-      if (!newItems.some(item => item.isReferable === true)) {
-        setSelectedReferral("none")
-      }
-      
-      return newItems
-    })
+    setCartItems(items => items.filter(item => item.id !== id))
   }
 
   const clearCart = () => {
@@ -243,9 +230,6 @@ export function POSClient({
   const taxRate = 0.15
   const taxAmount = subtotal * taxRate
   const total = subtotal + taxAmount
-
-  // Check if any cart items are referable
-  const hasReferableItems = cartItems.some(item => item.isReferable === true)
 
   // Calculate layaway installment amount
   const calculatedInstallmentAmount = layawayPlan.numberOfInstallments > 0 
@@ -563,43 +547,38 @@ export function POSClient({
                   </div>
                 </div>
 
-                {/* Referral Selection (Optional) - Only show if cart has referable items */}
-                {hasReferableItems && (
-                  <div>
-                    <Label>Referral (Optional)</Label>
-                    <div className="flex gap-2">
-                      <Select value={selectedReferral} onValueChange={setSelectedReferral}>
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Select referral (optional)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No referral</SelectItem>
-                          {referrals.map((referral) => (
-                            <SelectItem key={referral.id} value={referral.id.toString()}>
-                              {referral.fullName} - {referral.phoneNumber}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowReferralForm(true)}
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {selectedReferral && selectedReferral !== "none" && (
-                      <div className="text-xs text-green-600 mt-1">
-                        ✓ Referral commission will be calculated for eligible items
-                      </div>
-                    )}
-                    <div className="text-xs text-blue-600 mt-1">
-                      💡 Referral commissions apply to: {cartItems.filter(item => item.isReferable).map(item => item.name).join(', ')}
-                    </div>
+                {/* Referral Selection (Optional) */}
+                <div>
+                  <Label>Referral (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Select value={selectedReferral} onValueChange={setSelectedReferral}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select referral (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No referral</SelectItem>
+                        {referrals.map((referral) => (
+                          <SelectItem key={referral.id} value={referral.id.toString()}>
+                            {referral.fullName} - {referral.phoneNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowReferralForm(true)}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
+                  {selectedReferral && selectedReferral !== "none" && (
+                    <div className="text-xs text-green-600 mt-1">
+                      ✓ Referral commission will be calculated for this order
+                    </div>
+                  )}
+                </div>
 
                 {/* Layaway Configuration */}
                 {orderType === "LAYAWAY" && (
