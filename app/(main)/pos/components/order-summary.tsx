@@ -10,7 +10,6 @@ interface LayawayPlan {
 
 interface OrderSummaryProps {
   subtotal: number
-  taxAmount: number
   total: number
   orderType: string
   layawayPlan: LayawayPlan
@@ -20,26 +19,16 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ 
   subtotal, 
-  taxAmount, 
   total, 
   orderType, 
   layawayPlan, 
   calculatedInstallmentAmount, 
   paymentAmount 
 }: OrderSummaryProps) {
-  const taxRate = 0.15
   const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
 
   return (
     <div className="space-y-2 pt-4 border-t">
-      <div className="flex justify-between text-sm">
-        <span>Subtotal</span>
-        <span>${subtotal.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span>Tax ({(taxRate * 100).toFixed(0)}%)</span>
-        <span>${taxAmount.toFixed(2)}</span>
-      </div>
       <div className="flex justify-between font-medium text-lg">
         <span>Total</span>
         <span>${total.toFixed(2)}</span>

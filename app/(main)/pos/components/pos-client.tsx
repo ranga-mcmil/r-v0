@@ -227,9 +227,7 @@ export function POSClient({
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + getLineTotal(item), 0)
-  const taxRate = 0.15
-  const taxAmount = subtotal * taxRate
-  const total = subtotal + taxAmount
+  const total = subtotal // No tax applied
 
   // Calculate layaway installment amount
   const calculatedInstallmentAmount = layawayPlan.numberOfInstallments > 0 
@@ -487,7 +485,34 @@ export function POSClient({
                 </Button>
               </div>
 
-              {/* Order Type Selection */}
+              {/* Customer Selection - MOVED ABOVE ORDER TYPE */}
+              <div className="mb-4">
+                <Label>Customer *</Label>
+                <div className="flex gap-2">
+                  <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id.toString()}>
+                          {customer.firstName} {customer.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowCustomerForm(true)}
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Order Type Selection - MOVED BELOW CUSTOMER */}
               <div className="mb-4">
                 <Label>Order Type</Label>
                 <Select value={orderType} onValueChange={(value: OrderType) => setOrderType(value)}>
@@ -520,33 +545,6 @@ export function POSClient({
 
               {/* Order Details Form */}
               <div className="space-y-4">
-                {/* Customer Selection */}
-                <div>
-                  <Label>Customer *</Label>
-                  <div className="flex gap-2">
-                    <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select customer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customers.map((customer) => (
-                          <SelectItem key={customer.id} value={customer.id.toString()}>
-                            {customer.firstName} {customer.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowCustomerForm(true)}
-                    >
-                      <User className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
                 {/* Referral Selection (Optional) */}
                 <div>
                   <Label>Referral (Optional)</Label>
@@ -682,7 +680,6 @@ export function POSClient({
                 {/* Order Summary */}
                 <OrderSummary
                   subtotal={subtotal}
-                  taxAmount={taxAmount}
                   total={total}
                   orderType={orderType}
                   layawayPlan={layawayPlan}
