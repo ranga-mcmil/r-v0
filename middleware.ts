@@ -136,6 +136,7 @@ const accessRules = {
       "/branches/*/deactivate",
       "/categories/*/edit",
       "/colors/*/edit",
+      "/reports",
       "/thicknesses/*/edit",
       "/measurement-units/*/edit",
       "/products/*/delete", // Cannot delete products

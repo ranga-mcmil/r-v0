@@ -1,7 +1,7 @@
 // app/(main)/inventory/page.tsx
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, TrendingUp, TrendingDown, History, Package } from "lucide-react"
+import { Plus, TrendingUp, TrendingDown, History, Package, Activity } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,6 +88,28 @@ export default async function InventoryPage() {
                     <div className="flex flex-col">
                       <span>Adjust Stock</span>
                       <span className="text-xs text-muted-foreground">Increase or decrease</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem asChild>
+                  <Link href="/batches">
+                    <Package className="mr-2 h-4 w-4 text-indigo-600" />
+                    <div className="flex flex-col">
+                      <span>Batches Management</span>
+                      <span className="text-xs text-muted-foreground">Manage production batches</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem asChild>
+                  <Link href="/stock-movements">
+                    <Activity className="mr-2 h-4 w-4 text-purple-600" />
+                    <div className="flex flex-col">
+                      <span>Stock Movements</span>
+                      <span className="text-xs text-muted-foreground">View movement history</span>
                     </div>
                   </Link>
                 </DropdownMenuItem>

@@ -11,7 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, FileText, Menu, Settings, User } from "lucide-react"
+import { FileText, Menu, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { headers } from "next/headers"
@@ -79,7 +79,6 @@ export async function SiteHeader() {
 
   // Determine which icons to show on desktop
   const shouldShowOrdersIcon = userRole === USER_ROLES.MANAGER || userRole === USER_ROLES.SALES_REP || userRole === USER_ROLES.ADMIN
-  const shouldShowReportsIcon = userRole === USER_ROLES.ADMIN
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -159,16 +158,6 @@ export async function SiteHeader() {
                 <Link href="/orders">
                   <FileText className="h-5 w-5" />
                   <span className="sr-only">Orders</span>
-                </Link>
-              </Button>
-            )}
-            
-            {/* Conditionally render Reports icon for Admin */}
-            {shouldShowReportsIcon && (
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/reports">
-                  <BarChart3 className="h-5 w-5" />
-                  <span className="sr-only">Reports</span>
                 </Link>
               </Button>
             )}

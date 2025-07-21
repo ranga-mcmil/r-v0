@@ -16,11 +16,8 @@ function getMobileNavItems(userRole: string): NavItem[] {
         { href: "/users", label: "Users" },
         { href: "/customers", label: "Customers" },
         { href: "/products", label: "Products" },
-        { href: "/categories", label: "Categories" },
-        { href: "/batches", label: "Batches" },
         { href: "/inventory", label: "Inventory" },
         { href: "/orders", label: "Orders" },
-        { href: "/referrals", label: "Referrals" },
         { href: "/reports", label: "Reports" }
       ]
     
@@ -29,11 +26,8 @@ function getMobileNavItems(userRole: string): NavItem[] {
         { href: "/", label: "Dashboard" },
         { href: "/customers", label: "Customers" },
         { href: "/products", label: "Products" },
-        { href: "/categories", label: "Categories" },
-        { href: "/batches", label: "Batches" },
         { href: "/inventory", label: "Inventory" },
         { href: "/orders", label: "Orders" },
-        { href: "/referrals", label: "Referrals" },
         { href: "/reports", label: "Reports" }
       ]
     
@@ -44,7 +38,6 @@ function getMobileNavItems(userRole: string): NavItem[] {
         { href: "/pos", label: "POS" },
         { href: "/products", label: "Products" },
         { href: "/orders", label: "Orders" },
-        { href: "/referrals", label: "Referrals" },
         { href: "/reports", label: "Reports" }
       ]
     
