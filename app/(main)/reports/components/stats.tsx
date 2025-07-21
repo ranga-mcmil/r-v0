@@ -1,32 +1,40 @@
 // app/(main)/reports/components/stats.tsx
 import { StatsCards, StatCard } from "@/components/stats/stats-cards"
-import { FileText, Calendar, TrendingUp, Users } from "lucide-react"
+import { DollarSign, ShoppingCart, TrendingUp, Calendar } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
-export function Stats() {
+interface ReportsStatsProps {
+  totalSales: number
+  totalOrders: number
+  avgOrderValue: number
+  reportDate: string
+}
+
+export function ReportsStats({ totalSales, totalOrders, avgOrderValue, reportDate }: ReportsStatsProps) {
   const stats: StatCard[] = [
     {
-      title: "Available Reports",
-      value: 3,
-      description: "Report types available",
-      icon: FileText,
+      title: "Total Sales",
+      value: formatCurrency(totalSales),
+      description: `Sales for ${reportDate}`,
+      icon: DollarSign,
     },
     {
-      title: "This Month",
-      value: "45",
-      description: "Reports generated",
-      icon: Calendar,
+      title: "Total Orders",
+      value: totalOrders,
+      description: `Orders processed`,
+      icon: ShoppingCart,
     },
     {
-      title: "Performance",
-      value: "↑ 12%",
-      description: "vs last month",
+      title: "Average Order Value",
+      value: formatCurrency(avgOrderValue),
+      description: `Per order average`,
       icon: TrendingUp,
     },
     {
-      title: "Active Users",
-      value: "8",
-      description: "Using reports",
-      icon: Users,
+      title: "Report Date",
+      value: new Date(reportDate).toLocaleDateString(),
+      description: "Selected date range",
+      icon: Calendar,
     },
   ]
 

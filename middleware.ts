@@ -79,7 +79,9 @@ const accessRules = {
       "/contact",
       "/reports/inventory",
       "/reports/sales-summary",
-      "/reports/sales-detail"
+      "/reports/sales-detail",
+      "/reports/date-range",
+      "/stock-movements/*"
     ],
     restrictedPaths: [
       "/branches/*/edit", // Cannot edit branches
