@@ -120,7 +120,9 @@ const accessRules = {
       "/unauthorized",
       "/terms",
       "/privacy",
-      "/contact"
+      "/contact",
+      "/referrals",
+      "/referrals/create"
     ],
     restrictedPaths: [
       "/users", // Cannot access user management
