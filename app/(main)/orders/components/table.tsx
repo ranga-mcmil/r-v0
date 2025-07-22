@@ -1,9 +1,9 @@
-// app/(main)/orders/components/table.tsx
+// app/(main)/orders/components/table.tsx (Updated)
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import Link from "next/link"
+import { ChevronLeft, ChevronRight, ArrowRight, CreditCard, CheckCircle, AlertTriangle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import type { OrderResponseDTO } from "@/lib/http-service/orders/types"
 
@@ -12,13 +12,23 @@ interface OrdersTableProps {
   totalPages: number
   currentPage: number
   totalElements: number
+  baseUrl: string
+  showConvertActions?: boolean
+  showPaymentActions?: boolean
+  showCollectionActions?: boolean
+  highlightOverdue?: boolean
 }
 
 export function OrdersTable({ 
   orders = [], 
   totalPages, 
   currentPage, 
-  totalElements 
+  totalElements,
+  baseUrl,
+  showConvertActions = false,
+  showPaymentActions = false,
+  showCollectionActions = false,
+  highlightOverdue = false
 }: OrdersTableProps) {
   
   const getOrderTypeColor = (orderType: string) => {
@@ -65,6 +75,32 @@ export function OrdersTable({
     return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
   }
 
+  const isOrderOverdue = (order: OrderResponseDTO) => {
+    if (!highlightOverdue) return false
+    
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    // For ready for collection orders
+    if (order.status === 'READY_FOR_COLLECTION') {
+      return new Date(order.createdDate) < sevenDaysAgo
+    }
+    
+    // For layaway orders - check if they have overdue payments
+    if (order.orderType === 'LAYAWAY' && order.status === 'PARTIALLY_PAID') {
+      // This would need actual payment due date logic
+      return new Date(order.createdDate) < sevenDaysAgo
+    }
+    
+    return false
+  }
+
+  const buildPaginationUrl = (page: number) => {
+    const url = new URL(baseUrl, 'http://localhost')
+    url.searchParams.set('page', page.toString())
+    return url.pathname + url.search
+  }
+
   return (
     <>
       <div className="rounded-md border overflow-hidden">
@@ -80,73 +116,119 @@ export function OrdersTable({
               <TableHead>Balance</TableHead>
               <TableHead>Branch</TableHead>
               <TableHead>Created Date</TableHead>
+              {(showConvertActions || showPaymentActions || showCollectionActions) && (
+                <TableHead>Actions</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {!orders || orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={showConvertActions || showPaymentActions || showCollectionActions ? 10 : 9} className="text-center py-8 text-muted-foreground">
                   No orders found.
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((order) => (
-                <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-medium">
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      {order.orderNumber}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      {order.customerName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      <Badge className={getOrderTypeColor(order.orderType)}>
-                        {formatOrderType(order.orderType)}
-                      </Badge>
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      <Badge className={getStatusColor(order.status)}>
-                        {formatStatus(order.status)}
-                      </Badge>
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      {formatCurrency(order.totalAmount)}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      <span className={order.paidAmount > 0 ? "text-green-600" : ""}>
-                        {formatCurrency(order.paidAmount)}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      <span className={order.balanceAmount > 0 ? "text-red-600" : "text-green-600"}>
-                        {formatCurrency(order.balanceAmount)}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      {order.branchName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/orders/${order.id}`} className="block hover:underline">
-                      {new Date(order.createdDate).toLocaleDateString()}
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))
+              orders.map((order) => {
+                const isOverdue = isOrderOverdue(order)
+                return (
+                  <TableRow 
+                    key={order.id} 
+                    className={`cursor-pointer hover:bg-muted/50 ${isOverdue ? 'bg-red-50 border-l-4 border-l-red-500' : ''}`}
+                  >
+                    <TableCell className="font-medium">
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        <div className="flex items-center gap-2">
+                          {order.orderNumber}
+                          {isOverdue && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                        </div>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        {order.customerName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        <Badge className={getOrderTypeColor(order.orderType)}>
+                          {formatOrderType(order.orderType)}
+                        </Badge>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        <Badge className={getStatusColor(order.status)}>
+                          {formatStatus(order.status)}
+                        </Badge>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        {formatCurrency(order.totalAmount)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        <span className={order.paidAmount > 0 ? "text-green-600" : ""}>
+                          {formatCurrency(order.paidAmount)}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        <span className={order.balanceAmount > 0 ? "text-red-600" : "text-green-600"}>
+                          {formatCurrency(order.balanceAmount)}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        {order.branchName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/orders/${order.id}`} className="block hover:underline">
+                        {new Date(order.createdDate).toLocaleDateString()}
+                      </Link>
+                    </TableCell>
+                    
+                    {/* Action buttons column */}
+                    {(showConvertActions || showPaymentActions || showCollectionActions) && (
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {showConvertActions && order.orderType === 'QUOTATION' && order.status === 'PENDING' && (
+                            <Button size="sm" variant="outline" asChild>
+                              <Link href={`/orders/${order.id}/convert`}>
+                                <ArrowRight className="h-3 w-3 mr-1" />
+                                Convert
+                              </Link>
+                            </Button>
+                          )}
+                          
+                          {showPaymentActions && order.orderType === 'LAYAWAY' && order.balanceAmount > 0 && (
+                            <Button size="sm" variant="outline" asChild>
+                              <Link href={`/orders/${order.id}/payment`}>
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                Pay
+                              </Link>
+                            </Button>
+                          )}
+                          
+                          {showCollectionActions && order.status === 'READY_FOR_COLLECTION' && (
+                            <Button size="sm" variant="outline" asChild>
+                              <Link href={`/orders/${order.id}`}>
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Complete
+                              </Link>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -166,7 +248,7 @@ export function OrdersTable({
               disabled={currentPage <= 1}
             >
               {currentPage > 1 ? (
-                <Link href={`/orders?page=${currentPage - 1}`}>
+                <Link href={buildPaginationUrl(currentPage - 1)}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
                 </Link>
@@ -188,7 +270,7 @@ export function OrdersTable({
                     size="sm"
                     asChild
                   >
-                    <Link href={`/orders?page=${page}`}>
+                    <Link href={buildPaginationUrl(page)}>
                       {page}
                     </Link>
                   </Button>
@@ -203,7 +285,7 @@ export function OrdersTable({
               disabled={currentPage >= totalPages}
             >
               {currentPage < totalPages ? (
-                <Link href={`/orders?page=${currentPage + 1}`}>
+                <Link href={buildPaginationUrl(currentPage + 1)}>
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>

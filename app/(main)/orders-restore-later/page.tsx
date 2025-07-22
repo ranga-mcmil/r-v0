@@ -1,15 +1,7 @@
 // app/(main)/orders/page.tsx
-import { Suspense } from "react"
-import { OrderTabsNavigation } from "./components/order-tabs-navigation"
-import { AllOrdersTable } from "./components/all-orders-table"
-import { QuotationsTable } from "./components/quotations-table" 
-import { LayawayTable } from "./components/layaway-table"
-import { ReadyForCollectionTable } from "./components/ready-for-collection-table"
-import { ReportsSection } from "./components/reports-section"
-import { OrderStatsCards } from "./components/order-stats-cards"
-import { TableSkeleton } from "@/components/skeletons/table-skeleton"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Filter } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import Link from "next/link"
+import { OrdersTable } from "./components/table"
+import { Stats } from "./components/stats"
+import { ExportButton } from "./components/export-button"
+import { SearchForm } from "./components/search-form"
+import { getAllOrdersAction } from "@/actions/orders"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
 
 interface OrdersPageProps {
   searchParams?: {
-    tab?: string
     orderType?: string
     status?: string
     customerName?: string
@@ -47,12 +42,59 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
     redirect("/login")
   }
 
-  const activeTab = searchParams?.tab || 'all'
-  
-  // Only users with branch assignment or admins can access orders
-  if (session.user.role !== 'ROLE_ADMIN' && !session.user.branchId) {
-    redirect("/")
+  // Build query parameters
+  const queryParams = {
+    pageNo: searchParams?.page ? parseInt(searchParams.page) - 1 : 0,
+    pageSize: searchParams?.size ? parseInt(searchParams.size) : 10,
+    sortBy: searchParams?.sortBy || 'createdDate',
+    sortDir: (searchParams?.sortDir as 'asc' | 'desc') || 'desc',
+    orderType: searchParams?.orderType as any,
+    status: searchParams?.status as any,
+    customerName: searchParams?.customerName,
+    orderNumber: searchParams?.orderNumber,
+    startDate: searchParams?.startDate,
+    endDate: searchParams?.endDate,
   }
+
+  // For non-admin users, filter by their branch
+  if (session.user.role !== 'ROLE_ADMIN' && session.user.branchId) {
+    // Note: You may need to add branchId to the query params if the API supports it
+  }
+
+  // Fetch data server-side using existing actions
+  let orders: any[] = []
+  let totalElements = 0
+  let totalPages = 0
+  
+  try {
+    const ordersResponse = await getAllOrdersAction(queryParams)
+    if (ordersResponse.success && ordersResponse.data) {
+      orders = ordersResponse.data.content
+      totalElements = ordersResponse.data.totalElements
+      totalPages = ordersResponse.data.totalPages
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    orders = []
+  }
+
+  // Calculate stats
+  const quotations = orders.filter(order => order.orderType === 'QUOTATION').length
+  const layawayOrders = orders.filter(order => order.orderType === 'LAYAWAY').length
+  const completedOrders = orders.filter(order => order.status === 'COMPLETED').length
+  const pendingOrders = orders.filter(order => 
+    ['PENDING', 'CONFIRMED', 'PARTIALLY_PAID'].includes(order.status)
+  ).length
+
+  const stats = {
+    totalOrders: totalElements,
+    quotations,
+    layawayOrders,
+    completedOrders,
+    pendingOrders,
+  }
+
+  const currentPage = (queryParams.pageNo || 0) + 1
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -63,6 +105,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
             <p className="text-muted-foreground">Manage all customer orders and quotations</p>
           </div>
           <div className="flex gap-2">
+            <ExportButton orders={orders} />
+            
             {/* Create Order Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -115,26 +159,27 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <Suspense fallback={<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
-          ))}
-        </div>}>
-          <OrderStatsCards />
-        </Suspense>
+        <Stats 
+          totalOrders={stats.totalOrders}
+          quotations={stats.quotations}
+          layawayOrders={stats.layawayOrders}
+          completedOrders={stats.completedOrders}
+          pendingOrders={stats.pendingOrders}
+        />
 
-        {/* Tab Navigation */}
-        <OrderTabsNavigation currentTab={activeTab} />
+        <SearchForm 
+          currentParams={searchParams || {}}
+          canViewAllBranches={session.user.role === 'ROLE_ADMIN'}
+        />
 
-        {/* Tab Content */}
-        <Suspense fallback={<TableSkeleton columnCount={9} rowCount={5} />}>
-          {activeTab === 'all' && <AllOrdersTable searchParams={searchParams} />}
-          {activeTab === 'quotations' && <QuotationsTable searchParams={searchParams} />}
-          {activeTab === 'layaway' && <LayawayTable searchParams={searchParams} />}
-          {activeTab === 'ready' && <ReadyForCollectionTable searchParams={searchParams} />}
-          {activeTab === 'reports' && <ReportsSection searchParams={searchParams} />}
-        </Suspense>
+        <div className="border rounded-lg p-2">
+          <OrdersTable 
+            orders={orders} 
+            totalPages={totalPages}
+            currentPage={currentPage}
+            totalElements={totalElements}
+          />
+        </div>
       </main>
     </div>
   )
