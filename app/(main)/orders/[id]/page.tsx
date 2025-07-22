@@ -11,10 +11,10 @@ import { getOrderAction, getOrderPaymentsAction } from "@/actions/orders"
 import { formatCurrency } from "@/lib/utils"
 import { OrderStatusBadge } from "../components/order-status-badge"
 import { OrderTypeBadge } from "../components/order-type-badge"
-import { OrderItemsTable } from "../components/order-items-table"
-import { PaymentHistory } from "../components/payment-history"
-import { OrderActions } from "../components/order-actions"
-import { LayawayDetails } from "../components/layaway-details"
+// import { OrderItemsTable } from "../components/order-items-table"
+// import { PaymentHistory } from "../components/payment-history"
+// import { OrderActions } from "../components/order-actions"
+// import { LayawayDetails } from "../components/layaway-details"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
+import { OrderItemsTable } from "./components/order-items-table"
+import { OrderActions } from "./components/order-actions"
+import { LayawayDetails } from "./components/layaway-details"
+import { PaymentHistory } from "./components/payment-history"
 
 interface OrderDetailPageProps {
   params: {
