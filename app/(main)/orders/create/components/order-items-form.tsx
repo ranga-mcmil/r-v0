@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, Trash2, Package } from "lucide-react"
 import { getProductsAction } from "@/actions/products"
@@ -23,14 +22,16 @@ import {
 } from "@/components/ui/dialog"
 
 interface OrderItem {
+  id: string // Add unique ID for each cart item like POS
   productId: number
   productName: string
   quantity: number
   length: number
-  width: number
+  width: number // Will use DEFAULT_WIDTH
+  weight: number // Add weight field
   unitPrice: number
-  discount: number
   notes?: string
+  typeOfProduct: string // Add product type
 }
 
 interface OrderItemsFormProps {
@@ -39,6 +40,9 @@ interface OrderItemsFormProps {
 }
 
 export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFormProps) {
+  // Get default width from environment
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+  
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredProducts, setFilteredProducts] = useState<ProductDTO[]>([])
@@ -75,46 +79,61 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
     }
   }
 
+  // Generate unique ID for cart items like POS
+  const generateCartItemId = () => {
+    return `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  // Always add as new item (like POS) instead of updating existing
   const addProduct = (product: ProductDTO) => {
-    const existingIndex = orderItems.findIndex(item => item.productId === product.id)
-    
-    if (existingIndex >= 0) {
-      // Update existing item quantity
-      const updatedItems = [...orderItems]
-      updatedItems[existingIndex].quantity += 1
-      onOrderItemsChange(updatedItems)
-    } else {
-      // Add new item
-      const newItem: OrderItem = {
-        productId: product.id,
-        productName: product.name,
-        quantity: 1,
-        length: 1,
-        width: 1,
-        unitPrice: product.price,
-        discount: 0,
-        notes: ""
-      }
-      onOrderItemsChange([...orderItems, newItem])
+    const newItem: OrderItem = {
+      id: generateCartItemId(),
+      productId: product.id,
+      productName: product.name,
+      quantity: 1,
+      length: 1,
+      width: DEFAULT_WIDTH, // Use environment variable
+      weight: 1, // Default weight
+      unitPrice: product.price,
+      notes: "",
+      typeOfProduct: product.typeOfProduct // Store product type
     }
+    
+    onOrderItemsChange([...orderItems, newItem])
     setShowProductDialog(false)
   }
 
-  const updateItem = (index: number, field: keyof OrderItem, value: any) => {
-    const updatedItems = [...orderItems]
-    updatedItems[index] = { ...updatedItems[index], [field]: value }
+  const updateItem = (id: string, field: keyof OrderItem, value: any) => {
+    const updatedItems = orderItems.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    )
     onOrderItemsChange(updatedItems)
   }
 
-  const removeItem = (index: number) => {
-    const updatedItems = orderItems.filter((_, i) => i !== index)
+  const removeItem = (id: string) => {
+    const updatedItems = orderItems.filter(item => item.id !== id)
     onOrderItemsChange(updatedItems)
   }
 
+  // Calculate item total based on product type (simplified without discount)
   const calculateItemTotal = (item: OrderItem) => {
-    const baseTotal = item.quantity * item.length * item.width * item.unitPrice
-    const discountAmount = baseTotal * (item.discount / 100)
-    return baseTotal - discountAmount
+    let baseAmount = 0
+    
+    switch (item.typeOfProduct) {
+      case "LENGTH_WIDTH":
+        // Use length * DEFAULT_WIDTH (not form width)
+        baseAmount = item.unitPrice * item.quantity * item.length * DEFAULT_WIDTH
+        break
+      case "WEIGHT":
+        baseAmount = item.unitPrice * item.quantity * item.weight
+        break
+      case "UNKNOWN":
+      default:
+        baseAmount = item.unitPrice * item.quantity
+        break
+    }
+    
+    return baseAmount
   }
 
   return (
@@ -176,7 +195,7 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
                               Code: {product.code} | Stock: {product.stockQuantity}
                             </div>
                             <div className="text-sm font-medium text-green-600">
-                              {formatCurrency(product.price)}
+                              {formatCurrency(product.price)} | Type: {product.typeOfProduct}
                             </div>
                           </div>
                         </div>
@@ -191,7 +210,7 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
         </DialogContent>
       </Dialog>
 
-      {/* Order Items Table */}
+      {/* Order Items Table - Updated with conditional fields */}
       {orderItems.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
           <Table>
@@ -199,24 +218,25 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead className="w-20">Qty</TableHead>
-                <TableHead className="w-24">Length</TableHead>
-                <TableHead className="w-24">Width</TableHead>
-                <TableHead className="w-24">Price</TableHead>
-                <TableHead className="w-20">Disc%</TableHead>
+                <TableHead className="w-24">Measurement</TableHead>
+                <TableHead className="w-24">Unit Price</TableHead>
                 <TableHead className="w-24">Total</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orderItems.map((item, index) => (
-                <TableRow key={index}>
+                <TableRow key={item.id}>
                   <TableCell>
                     <div>
                       <div className="font-medium">{item.productName}</div>
+                      <Badge variant="outline" className="text-xs mt-1">
+                        {item.typeOfProduct}
+                      </Badge>
                       <Input
                         placeholder="Notes..."
                         value={item.notes || ""}
-                        onChange={(e) => updateItem(index, 'notes', e.target.value)}
+                        onChange={(e) => updateItem(item.id, 'notes', e.target.value)}
                         className="mt-1 text-xs"
                       />
                     </div>
@@ -226,49 +246,55 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                      onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
                       className="text-center"
                     />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={item.length}
-                      onChange={(e) => updateItem(index, 'length', parseFloat(e.target.value) || 1)}
-                      className="text-center"
-                    />
+                    {/* Conditional measurement field based on product type */}
+                    {item.typeOfProduct === "LENGTH_WIDTH" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Length (m)</Label>
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={item.length}
+                          onChange={(e) => updateItem(item.id, 'length', parseFloat(e.target.value) || 1)}
+                          className="text-center"
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          Area: {(item.length * DEFAULT_WIDTH).toFixed(2)} m²
+                        </div>
+                      </div>
+                    )}
+                    {item.typeOfProduct === "WEIGHT" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Weight (kg)</Label>
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={item.weight}
+                          onChange={(e) => updateItem(item.id, 'weight', parseFloat(e.target.value) || 1)}
+                          className="text-center"
+                        />
+                        <div className="text-xs text-muted-foreground">
+                          {item.weight.toFixed(2)} kg
+                        </div>
+                      </div>
+                    )}
+                    {item.typeOfProduct === "UNKNOWN" && (
+                      <div className="text-center text-muted-foreground text-xs">
+                        Quantity only
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={item.width}
-                      onChange={(e) => updateItem(index, 'width', parseFloat(e.target.value) || 1)}
-                      className="text-center"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={item.unitPrice}
-                      onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                      className="text-center"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={item.discount}
-                      onChange={(e) => updateItem(index, 'discount', parseFloat(e.target.value) || 0)}
-                      className="text-center"
-                    />
+                    {/* Price is now read-only, not editable */}
+                    <div className="text-center font-medium">
+                      {formatCurrency(item.unitPrice)}
+                    </div>
                   </TableCell>
                   <TableCell className="font-medium">
                     {formatCurrency(calculateItemTotal(item))}
@@ -277,7 +303,7 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeItem(index)}
+                      onClick={() => removeItem(item.id)}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4" />

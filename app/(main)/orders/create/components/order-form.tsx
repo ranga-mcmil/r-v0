@@ -1,7 +1,7 @@
 // app/(main)/orders/create/components/order-form.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
+import { UserPlus } from "lucide-react"
 import { CustomerSelector } from "./customer-selector"
 import { OrderItemsForm } from "./order-items-form"
 import { PaymentForm } from "./payment-form"
 import { LayawayPlanForm } from "./layaway-plan-form"
+import { ReferralSelector } from "./referral-selector"
 import { formatCurrency } from "@/lib/utils"
 import type { OrderType } from "@/lib/http-service/orders/types"
 import type { APIResponse } from "@/lib/http-service/apiClient"
@@ -24,14 +26,16 @@ interface OrderFormProps {
 }
 
 interface OrderItem {
+  id: string // Unique ID like POS
   productId: number
   productName: string
   quantity: number
   length: number
   width: number
+  weight: number // Add weight
   unitPrice: number
-  discount: number
   notes?: string
+  typeOfProduct: string // Add product type
 }
 
 interface LayawayPlan {
@@ -46,7 +50,11 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   
+  // Get default width from environment
+  const DEFAULT_WIDTH = parseFloat(process.env.NEXT_PUBLIC_DEFAULT_WIDTH || '1')
+  
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null)
+  const [selectedReferralId, setSelectedReferralId] = useState<number | null>(null)
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [notes, setNotes] = useState("")
   const [paymentAmount, setPaymentAmount] = useState(0)
@@ -55,12 +63,28 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
   const [layawayPlan, setLayawayPlan] = useState<LayawayPlan | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Calculate totals
-  const subtotal = orderItems.reduce((sum, item) => {
-    const itemTotal = item.quantity * item.length * item.width * item.unitPrice
-    const discountAmount = itemTotal * (item.discount / 100)
-    return sum + (itemTotal - discountAmount)
-  }, 0)
+  // Calculate totals based on product type (like POS)
+  const calculateItemTotal = (item: OrderItem) => {
+    let baseAmount = 0
+    
+    switch (item.typeOfProduct) {
+      case "LENGTH_WIDTH":
+        baseAmount = item.unitPrice * item.quantity * item.length * DEFAULT_WIDTH
+        break
+      case "WEIGHT":
+        baseAmount = item.unitPrice * item.quantity * item.weight
+        break
+      case "UNKNOWN":
+      default:
+        baseAmount = item.unitPrice * item.quantity
+        break
+    }
+    
+    const discountAmount = baseAmount * (item.discount / 100)
+    return baseAmount - discountAmount
+  }
+
+  const subtotal = orderItems.reduce((sum, item) => sum + calculateItemTotal(item), 0)
 
   const requiresPayment = orderType !== "QUOTATION"
   const requiresCollectionDate = orderType === "FUTURE_COLLECTION"
@@ -119,12 +143,12 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
     try {
       const formData = new FormData()
       
-      // Add order items
+      // Add order items with correct structure (like POS)
       formData.append('orderItems', JSON.stringify(orderItems.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
-        length: item.length,
-        width: item.width,
+        length: item.typeOfProduct === "LENGTH_WIDTH" ? item.length : 1,
+        width: DEFAULT_WIDTH, // Use environment variable
         discount: item.discount,
         notes: item.notes || ""
       }))))
@@ -132,6 +156,11 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
       // Add notes
       if (notes) {
         formData.append('notes', notes)
+      }
+
+      // Add referral ID if selected
+      if (selectedReferralId) {
+        formData.append('referralId', selectedReferralId.toString())
       }
 
       // Add payment info if required
@@ -191,6 +220,20 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
               <CustomerSelector 
                 onCustomerSelect={setSelectedCustomerId}
                 selectedCustomerId={selectedCustomerId}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Referral Selection - NEW */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Referral (Optional)</CardTitle>
+              <CardDescription>Select a referral for commission tracking</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReferralSelector 
+                onReferralSelect={setSelectedReferralId}
+                selectedReferralId={selectedReferralId}
               />
             </CardContent>
           </Card>
@@ -321,6 +364,12 @@ export function OrderForm({ orderType, createAction }: OrderFormProps) {
                     </span>
                   </div>
                 </>
+              )}
+              {selectedReferralId && (
+                <div className="flex justify-between">
+                  <span className="text-sm">Referral</span>
+                  <span className="text-sm font-medium text-blue-600">Selected</span>
+                </div>
               )}
               <Separator />
               <div className="flex justify-between">

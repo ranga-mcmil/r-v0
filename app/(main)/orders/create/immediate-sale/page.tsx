@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
 import { OrderForm } from "../components/order-form"
-import { createImmediateSaleAction } from "@/actions/orders"
+import { createImmediateSaleWithReferralAction } from "@/actions/orders"
 
 export default async function CreateImmediateSalePage() {
   const session = await getServerSession(authOptions)
@@ -40,7 +40,7 @@ export default async function CreateImmediateSalePage() {
         <Suspense fallback={<div>Loading...</div>}>
           <OrderForm 
             orderType="IMMEDIATE_SALE"
-            createAction={createImmediateSaleAction}
+            createAction={createImmediateSaleWithReferralAction}
           />
         </Suspense>
       </main>

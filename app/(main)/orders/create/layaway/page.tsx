@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
 import { OrderForm } from "../components/order-form"
-import { createLayawayAction } from "@/actions/orders"
+import { createLayawayWithReferralAction } from "@/actions/orders"
 
 export default async function CreateLayawayPage() {
   const session = await getServerSession(authOptions)
@@ -40,7 +40,7 @@ export default async function CreateLayawayPage() {
         <Suspense fallback={<div>Loading...</div>}>
           <OrderForm 
             orderType="LAYAWAY"
-            createAction={createLayawayAction}
+            createAction={createLayawayWithReferralAction}
           />
         </Suspense>
       </main>

@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/next-auth-options"
 import { redirect } from "next/navigation"
 import { OrderForm } from "../components/order-form"
-import { createFutureCollectionAction } from "@/actions/orders"
+import { createFutureCollectionWithReferralAction } from "@/actions/orders"
 
 export default async function CreateFutureCollectionPage() {
   const session = await getServerSession(authOptions)
@@ -40,7 +40,7 @@ export default async function CreateFutureCollectionPage() {
         <Suspense fallback={<div>Loading...</div>}>
           <OrderForm 
             orderType="FUTURE_COLLECTION"
-            createAction={createFutureCollectionAction}
+            createAction={createFutureCollectionWithReferralAction}
           />
         </Suspense>
       </main>
