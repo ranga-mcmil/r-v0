@@ -194,3 +194,4 @@ export function OrderFilters({ currentParams }: OrderFiltersProps) {
       )}
     </Card>
   )
+}
