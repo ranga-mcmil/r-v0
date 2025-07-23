@@ -16,7 +16,7 @@ export function InventoryTable({ inventory = [] }: InventoryTableProps) {
             <TableHead>Product</TableHead>
             <TableHead>Batch</TableHead>
             <TableHead>Quantity</TableHead>
-            <TableHead>Dimensions</TableHead>
+            <TableHead>Length</TableHead>
             <TableHead>Weight</TableHead>
             <TableHead>Total Stock</TableHead>
             <TableHead>Date</TableHead>
@@ -50,10 +50,13 @@ export function InventoryTable({ inventory = [] }: InventoryTableProps) {
                 </TableCell>
                 <TableCell>
                   <Link href={`#`} className="block hover:underline">
-                    {item.length && item.width 
-                      ? `${item.length} × ${item.width}` 
-                      : '-'
-                    }
+                    {item.length > 0 ? (
+                      <span className="text-muted-foreground">
+                        {item.length}m
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </Link>
                 </TableCell>
                 <TableCell>
@@ -64,7 +67,7 @@ export function InventoryTable({ inventory = [] }: InventoryTableProps) {
                 <TableCell>
                   <Link href={`#`} className="block hover:underline">
                     <span className={item.totalStockQuantity <= 10 ? "text-red-600 font-medium" : ""}>
-                      {item.totalStockQuantity}
+                      {item.totalStockQuantity}m
                     </span>
                   </Link>
                 </TableCell>
