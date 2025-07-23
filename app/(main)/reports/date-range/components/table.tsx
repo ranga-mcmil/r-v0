@@ -70,7 +70,7 @@ export function DateRangeReportsTable({
                 <TableHead>Customer</TableHead>
                 <TableHead>Branch</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>Dimensions</TableHead>
+                <TableHead>Length</TableHead>
                 <TableHead>Payment Type</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
@@ -97,7 +97,7 @@ export function DateRangeReportsTable({
                         {report.quantitySold} {report.unitOfMeasure}
                       </TableCell>
                       <TableCell>
-                        {report.dimensions || `${report.length}×${report.width}`}
+                        {report.length > 0 ? `${report.length}m` : '-'}
                       </TableCell>
                       <TableCell>
                         <span className="capitalize">{report.paymentType?.toLowerCase()}</span>

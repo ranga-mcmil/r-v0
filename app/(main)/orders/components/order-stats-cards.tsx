@@ -18,7 +18,7 @@ export async function OrderStatsCards() {
 
   try {
     // Get recent orders for stats calculation
-    const ordersResponse = await getAllOrdersAction({ pageSize: 100 })
+    const ordersResponse = await getAllOrdersAction()
     
     if (ordersResponse.success && ordersResponse.data) {
       const orders = ordersResponse.data.content
