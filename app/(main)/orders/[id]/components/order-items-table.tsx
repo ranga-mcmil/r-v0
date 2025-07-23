@@ -21,7 +21,7 @@ export function OrderItemsTable({ items }: OrderItemsTableProps) {
               <TableHead>Product</TableHead>
               <TableHead>Code</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
-              <TableHead className="text-right">Dimensions</TableHead>
+              <TableHead className="text-right">Length</TableHead>
               <TableHead className="text-right">Unit Price</TableHead>
               <TableHead className="text-right">Total Price</TableHead>
               <TableHead>Notes</TableHead>
@@ -52,9 +52,9 @@ export function OrderItemsTable({ items }: OrderItemsTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="text-sm">
-                      {item.length > 0 && item.width > 0 ? (
+                      {item.length > 0 ? (
                         <span className="text-muted-foreground">
-                          {item.length}m × {item.width}m
+                          {item.length}m
                         </span>
                       ) : (
                         <span className="text-muted-foreground">-</span>

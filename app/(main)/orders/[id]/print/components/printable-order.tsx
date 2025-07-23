@@ -27,9 +27,10 @@ export function PrintableOrder({ order }: PrintableOrderProps) {
     <div className="max-w-4xl mx-auto p-8 bg-white text-black" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <div className="text-center mb-8 border-b-2 border-gray-300 pb-6">
-        <h1 className="text-3xl font-bold mb-2">COMPANY NAME</h1>
-        <p className="text-gray-600">123 Business Street, City, State 12345</p>
-        <p className="text-gray-600">Phone: (555) 123-4567 | Email: info@company.com</p>
+        <h1 className="text-3xl font-bold mb-2">ROOFSTAR INDUSTRIES</h1>
+        <p className="text-gray-600">2806 Edson Street, Light Industry, Kwekwe, Zimbabwe</p>
+        <p className="text-gray-600">Phone: 077 692 2333 | Email: roofstarsales@gmail.com</p>
+        <p className="text-gray-600">Website: www.roofstar.co.zw</p>
       </div>
 
       {/* Order Header */}
@@ -99,7 +100,7 @@ export function PrintableOrder({ order }: PrintableOrderProps) {
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left">Product</th>
               <th className="border border-gray-300 p-2 text-center">Qty</th>
-              <th className="border border-gray-300 p-2 text-center">Dimensions</th>
+              <th className="border border-gray-300 p-2 text-center">Length</th>
               <th className="border border-gray-300 p-2 text-right">Unit Price</th>
               <th className="border border-gray-300 p-2 text-right">Total</th>
             </tr>
@@ -118,11 +119,7 @@ export function PrintableOrder({ order }: PrintableOrderProps) {
                 </td>
                 <td className="border border-gray-300 p-2 text-center">{item.quantity}</td>
                 <td className="border border-gray-300 p-2 text-center">
-                  {item.length > 0 && item.width > 0 ? (
-                    `${item.length}m × ${item.width}m`
-                  ) : (
-                    '-'
-                  )}
+                  {item.length > 0 ? `${item.length}m` : '-'}
                 </td>
                 <td className="border border-gray-300 p-2 text-right">{formatCurrency(item.unitPrice)}</td>
                 <td className="border border-gray-300 p-2 text-right font-medium">{formatCurrency(item.totalPrice)}</td>

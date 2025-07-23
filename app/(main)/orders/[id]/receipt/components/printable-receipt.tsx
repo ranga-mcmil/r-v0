@@ -28,10 +28,12 @@ export function PrintableReceipt({ order }: PrintableReceiptProps) {
     <div className="max-w-md mx-auto p-4 bg-white text-black" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
       {/* Header */}
       <div className="text-center mb-4 border-b border-dashed border-gray-400 pb-4">
-        <div className="text-lg font-bold">COMPANY NAME</div>
-        <div className="text-xs">123 Business Street</div>
-        <div className="text-xs">City, State 12345</div>
-        <div className="text-xs">Phone: (555) 123-4567</div>
+        <div className="text-lg font-bold">ROOFSTAR INDUSTRIES</div>
+        <div className="text-xs">2806 Edson Street</div>
+        <div className="text-xs">Light Industry, Kwekwe, Zimbabwe</div>
+        <div className="text-xs">Phone: 077 692 2333</div>
+        <div className="text-xs">Email: roofstarsales@gmail.com</div>
+        <div className="text-xs">www.roofstar.co.zw</div>
         <div className="text-xs mt-2 font-bold">TAX INVOICE / RECEIPT</div>
       </div>
 
@@ -84,9 +86,9 @@ export function PrintableReceipt({ order }: PrintableReceiptProps) {
               <span>{item.quantity} × {formatCurrency(item.unitPrice)}</span>
               <span>{formatCurrency(item.totalPrice)}</span>
             </div>
-            {item.length > 0 && item.width > 0 && (
+            {item.length > 0 && (
               <div className="text-xs text-gray-600">
-                Dimensions: {item.length}m × {item.width}m
+                Length: {item.length}m
               </div>
             )}
             {item.notes && (
@@ -179,10 +181,10 @@ export function PrintableReceipt({ order }: PrintableReceiptProps) {
           <div className="mb-1">Order ready for collection</div>
         )}
         <div className="text-xs mt-2">
-          Visit us: www.company.com
+          Visit us: www.roofstar.co.zw
         </div>
         <div className="text-xs">
-          Email: info@company.com
+          Email: roofstarsales@gmail.com
         </div>
         
         {/* QR Code placeholder */}

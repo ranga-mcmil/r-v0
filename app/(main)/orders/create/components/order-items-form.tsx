@@ -264,7 +264,7 @@ export function OrderItemsForm({ orderItems, onOrderItemsChange }: OrderItemsFor
                           className="text-center"
                         />
                         <div className="text-xs text-muted-foreground">
-                          Area: {(item.length * DEFAULT_WIDTH).toFixed(2)} m²
+                          {item.length.toFixed(2)}m
                         </div>
                       </div>
                     )}
